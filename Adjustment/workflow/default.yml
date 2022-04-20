@@ -1,0 +1,5 @@
+print_it_all: False
+diagnostics:
+    checkup_plots:
+        colors: ['black', 'salmon', 'gold']
+        labels: ['Reference', 'Simulation', 'Scenario']
