@@ -49,6 +49,11 @@ The evaluation criteria included:
 3) a seasonal evaluation of the quantile bias (5, 25 , 50, 75, 95) of the daily 
 values between station data and the various candidates (figures 3a-b). 
 
+Summary results of quantitative comparisons (figures 1 to 3) indicate that there is no clear winner for the choice of 
+reference dataset, with results varying by season or criteria. As such, ERA5-Land was chosen because it 
+generally shows good results while presenting the advantages of an increased spatial and temporal resolution
+as well as a temporal coverage up to the present (Table 1).
+
 **Table 1. Summary of reference dataset candidates for ESPO-R v1.0.**
 
 | Dataset             | Start year | End year    | Spatial coverage       | Spatial resolution | Temporal resolution | Reference                               |
@@ -63,10 +68,7 @@ values between station data and the various candidates (figures 3a-b).
 | WFDEI-GEM-CaPa      | 1979       | 2016        | global (land only)     | ~10 Km             | 1 h                 | Asong et al. 2020                       |
 | NRCAN Gridded v2017 | 1950       | 2017        | Canada (land only)     | ~10 Km             | 1 day               | McKenney et al. 2011                    |
 
-Summary results of quantitative comparisons (figures 1 to 3) indicate that there is no clear winner for the choice of 
-reference dataset, with results varying by season or criteria. As such, ERA5-Land was chosen because it 
-generally shows good results while presenting the advantages of an increased spatial and temporal resolution
-as well as a temporal coverage up to the present (Table 1).
+
 
 ![img.png](images/img.png)
 
