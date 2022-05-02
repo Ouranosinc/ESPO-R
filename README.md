@@ -1,4 +1,4 @@
-# ESPO-R : Ensemble de Scénarios Polyvalents d'Ouranos - Régional
+# ESPO-R : Ensemble de Scénarios Polyvalents d'Ouranos - modèles Régionaux du climat
 
 ## Context
 The need to adapt to climate change is present in a growing number of fields, 
@@ -19,17 +19,17 @@ CMIP program.
 ## Data processing tools
 The production and regular update of ESPO-R/G operational datasets represents a challenge
 in terms of computational resources. Ouranos has invested a great deal of effort in the
-development of powerful tools for this type of data processing via its xclim software 
-package https://xclim.readthedocs.io/en/stable/.  Built upon the packages xarray and 
+development of powerful tools for this type of data processing via its [xclim software 
+package](https://xclim.readthedocs.io/en/stable/).  Built upon the packages xarray and 
 dask, xclim benefits from simple to use parallelization and distributed computing tools 
 and can be easily deployed on High Performance Computing (HPC) environments.
 
 
-## ESPO-R v1.0
+## ESPO-R5 v1.0
 
 
 ### Reference data
-ESPO-R v1.0 uses the ERA5-Land reanalysis https://confluence.ecmwf.int/display/CKB/ERA5-Land 
+ESPO-R5 v1.0 uses the [ERA5-Land reanalysis](https://confluence.ecmwf.int/display/CKB/ERA5-Land)
 (Muñoz Sabater, J., 2019 & 2021) as its reference (or target) dataset .  ERA5-Land is a re-run
 of the land component of the ERA5 climate reanalysis, forced by meteorological fields from 
 ERA5 and cover the period 1950 to the 2-3 months before the present. ERA5-Land benefits numerous 
@@ -39,15 +39,15 @@ runs at enhanced resolution (9 km vs 31 km in ERA5).
 ERA5-land was retained after an evaluation of multiple candidate datasets (table 1) against observed data for the 
 variables of daily maximum and minimum temperatures, and daily total precipitation for the period 1981-2010.  
 Observed data for the comparison consisted of Third Generation of Homogenized Daily Temperature for Canada (Vincent et al. 2020), 
-as well as Second Generation of Daily Adjusted Precipitation for Canada (Mékis and Vincent. 2011). To be included in the 
+as well as Second Generation of Daily Adjusted Precipitation for Canada (Mékis and Vincent. 2011) (AHCCD). To be included in the 
 assessment, adjusted station data had to have 25 years of valid data for the period 1981-2010, a valid year requiring 
 each month to have no more than 10% missing data.
 
 The evaluation criteria included: 
-1) a comparison of the mean annual cycle (figures x), 
-2) an evaluation of the inter-annual seasonal time series (figure ya-c), and 
+1) a comparison of the mean annual cycle (figure 1), 
+2) an evaluation of the inter-annual seasonal time series (figurea 2a-c), and 
 3) a seasonal evaluation of the quantile bias (5, 25 , 50, 75, 95) of the daily 
-values between station data and the various candidates (figures za, zb). 
+values between station data and the various candidates (figures 3a-b). 
 
 **Table 1. Summary of reference dataset candidates for ESPO-R v1.0.**
 
@@ -70,7 +70,7 @@ as well as a temporal coverage up to the present (Table 1).
 
 ![img.png](images/img.png)
 
-Figure 1. Summary of assessment of mean annual cycle (1981-2010) between candidate datasets and adjusted station data for daily maximum temperature (left column), daily minimum temperature (middle column) and total precipitation (right column). The figures represent the distribution of mean square (top) and correlation (bottom) error values between stations and gridded data.
+**Figure 1.** Summary of assessment of mean annual cycle (1981-2010) between candidate datasets and adjusted station data for daily maximum temperature (left column), daily minimum temperature (middle column) and total precipitation (right column). The figures represent the distribution of mean square (top) and correlation (bottom) error values between stations and gridded data.
 
 ![img_1.png](images/img_1.png)
 a)
@@ -79,7 +79,7 @@ b)
 ![img_3.png](images/img_3.png)
 c)
 
-Figure 2. Summary of evaluation of interannual seasonal time series (1981-2010) between candidate datasets and DCCAH stations for daily maximum temperature (a), daily minimum temperature (b) and daily total precipitation (c) variables ). The figures represent the distribution of mean square (top) and correlation (bottom) error values between stations and gridded data.
+**Figure 2.** Summary of evaluation of interannual seasonal time series (1981-2010) between candidate datasets and AHCCD stations for daily maximum temperature (a), daily minimum temperature (b) and daily total precipitation (c) variables ). The figures represent the distribution of mean square (top) and correlation (bottom) error values between stations and gridded data.
 
 ![img_4.png](images/img_4.png)
 a)
@@ -88,7 +88,7 @@ b)
 ![img.png](images/img_6.png)
 c)
 
-Figure 3. Summary of bias by percentile (1981-2010) between candidate datasets for daily values of maximum temperatures (a), minimum temperatures (b) and total precipitation (c). The comparison was made for the seasons of winter (DJF: 1st column), spring (MAM: 2nd column), summer (JJA: 3rd column) and autumn (SON: 4th column). The results for the compared percentiles (5, 25, 50, 75, and 95) are organized by row in ascending order, starting from the top.
+**Figure 3.** Summary of bias by percentile (1981-2010) between candidate datasets for daily values of maximum temperatures (a), minimum temperatures (b) and total precipitation (c). The comparison was made for the seasons of winter (DJF: 1st column), spring (MAM: 2nd column), summer (JJA: 3rd column) and autumn (SON: 4th column). The results for the compared percentiles (5, 25, 50, 75, and 95) are organized by row in ascending order, starting from the top.
 
 
 ### Regional climate simulations
