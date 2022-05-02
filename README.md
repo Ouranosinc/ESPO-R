@@ -1,4 +1,4 @@
-# ESPO-R
+# ESPO-R : Ensemble de Scénarios Polyvalents d'Ouranos - Régional
 
 ## Context
 The need to adapt to climate change is present in a growing number of fields, 
@@ -17,7 +17,7 @@ CMIP program.
 
 
 ## Data processing tools
-The production and regular update of ESPO-R /G operational datasets represents a challenge
+The production and regular update of ESPO-R/G operational datasets represents a challenge
 in terms of computational resources. Ouranos has invested a great deal of effort in the
 development of powerful tools for this type of data processing via its xclim software 
 package https://xclim.readthedocs.io/en/stable/.  Built upon the packages xarray and 
