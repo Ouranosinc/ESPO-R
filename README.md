@@ -38,6 +38,17 @@ runs at enhanced resolution (9 km vs 31 km in ERA5).
 
 The selection of ERA5-land was carried out ....
 
+| Dataset             | Start year | End year    | Spatial coverage        | Spatial resolution | Temporal resolution |
+|---------------------|------------|-------------|-------------------------|--------------------|---------------------|
+| ERA5                | 1979       | Present     | global                  | ~32 Km             | 1 h                 |
+| **ERA5-Land**       | **1979**   | **Present** | ***global (land only)** | **~9 Km**          | **1 h**             |
+| NCEP Reanalysis 2   | 1979       | Present     | global                  | 2.5 x 2.5 degrees  | 6 h                 |
+| NCEP CFSR           | 1979       | 2009        | global                  | ~40 Km             | 1 h                 |
+| MERRA2              | 1980       | Present     | global                  | ~50 Km             | 3 h                 |
+| AgCFSR              | 1979       | 2010        | global (land only)      | ~30 Km             | 1 h                 |
+| AgMERRA             | 1979       | 2010        | global (land only)      | ~30 Km             | 1 h                 |
+| WFDEI-GEM-CaPa      | 1979       | 2016        | global (land only)      | ~10 Km             | 1 h                 |
+| NRCAN Gridded v2017 | 1950       | 2017        | Canada (land only)      | ~10 Km             | 1 day               |
 
 #### Regional climate simulations
 
