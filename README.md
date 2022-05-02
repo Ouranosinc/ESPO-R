@@ -27,8 +27,8 @@ and can be easily deployed on High Performance Computing (HPC) environments.
 
 ## ESPO-R v1.0
 
-### Input data
-#### Reference data
+
+### Reference data
 ESPO-R v1.0 uses the ERA5-Land reanalysis https://confluence.ecmwf.int/display/CKB/ERA5-Land 
 (Muñoz Sabater, J., 2019 & 2021) as its reference (or target) dataset .  ERA5-Land is a re-run
 of the land component of the ERA5 climate reanalysis, forced by meteorological fields from 
@@ -91,12 +91,12 @@ c)
 Figure3. Summary of bias by percentile (1981-2010) between candidate datasets for daily values of maximum temperatures (a), minimum temperatures (b) and total precipitation (c). The comparison was made for the seasons of winter (DJF: 1st column), spring (MAM: 2nd column), summer (JJA: 3rd column) and autumn (SON: 4th column). The results for the compared percentiles (5, 25, 50, 75, and 95) are organized by row in ascending order, starting from the top.
 
 
-#### Regional climate simulations
+### Regional climate simulations
 
-#### Methodology
+### Methodology
 
 
-### References
+## References
 Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietroniro, A., and Cannon, A.: High-resolution meteorological forcing data for hydrological modelling and climate change impact analysis in the Mackenzie River Basin, Earth Syst. Sci. Data, 12, 629–645, https://doi.org/10.5194/essd-12-629-2020, 2020.
 
 Gelaro R., et al., 2017. The Modern-Era Retrospective Analysis for Research and Applications, Version 2 (MERRA-2). J. Clim., doi: 10.1175/JCLI-D-16-0758.1
