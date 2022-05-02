@@ -29,9 +29,24 @@ and can be easily deployed on High Performance Computing (HPC) environments.
 
 ### Input data
 #### Reference data
+ESPO-R v1.0 uses the ERA5-Land reanalysis https://confluence.ecmwf.int/display/CKB/ERA5-Land 
+(Muñoz Sabater, J., 2019 & 2021) as its reference (or target) dataset .  ERA5-Land is a re-run
+of the land component of the ERA5 climate reanalysis, forced by meteorological fields from 
+ERA5 and cover the period 1950 to the 2-3 months before the present. ERA5-Land benefits numerous 
+improvements making it more accurate for all types of land applications. In particular, ERA5-Land 
+runs at enhanced resolution (9 km vs 31 km in ERA5).
+
+The selection of ERA5-land was carried out ....
+
 
 #### Regional climate simulations
 
 #### Methodology
 
 
+### References
+Muñoz Sabater, J., (2019): ERA5-Land hourly data from 1981 to present. Copernicus Climate 
+Change Service (C3S) Climate Data Store (CDS). (Accessed on 15-12-2021), 10.24381/cds.e2161bac
+
+Muñoz Sabater, J., (2021): ERA5-Land hourly data from 1950 to 1980. Copernicus Climate 
+Change Service (C3S) Climate Data Store (CDS). (Accessed on 15-12-2021), 10.24381/cds.e2161bac
