@@ -27,3 +27,11 @@ and can be easily deployed on High Performance Computing (HPC) environments.
 
 ## ESPO-R v1.0
 
+### Input data
+#### Reference data
+
+#### Regional climate simulations
+
+#### Methodology
+
+
