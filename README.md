@@ -27,6 +27,7 @@ and can be easily deployed on High Performance Computing (HPC) environments.
 
 ## ESPO-R5 v1.0
 
+TODO : add short description (generation CMIP5 etc ...)
 
 ### Reference data
 ESPO-R5 v1.0 uses the [ERA5-Land reanalysis](https://confluence.ecmwf.int/display/CKB/ERA5-Land)
