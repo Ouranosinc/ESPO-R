@@ -95,18 +95,33 @@ c)
 
 
 ### Regional climate simulations
+TODO add description of vars and table of simulations
 
 ### Methodology
+The temperature and precipitation data from the simulations in table 2 were first extracted over an area covering all of Quebec and, 
+if necessary, converted into daily values. Then using the [ESMF software](https://earthsystemmodeling.org/regrid/), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface, all the extracted simulation data is interpolated 
+bilinearly to the ERA5-Land grid.
 
+The ESPO-R5 v.1.0 bias adjustment procedure then uses  [xclim](https://xclim.readthedocs.io/en/stable/sdba.html) algorithms to adjust simulation bias following a quantile mapping 
+procedure. In particular, the algorithm used follows the method of "Detrended Quantile Mapping" described by Cannon (2015), but with some modifications. The procedure is bipartite. 
+First, the adjustment factors are calculated based on reference data and simulations over a common period (training stage). Then the entire simulation is corrected with these factors (adjustment step). 
+The reference period chosen here is 1981-2010. Adjustments are univariate, where corrections are applied separately for each of the 3 variables.
+Data is adjusted for each day of the year, using a rolling window of 31 days. For example, the adjustment factors for February 1 (day 32) are calculated using data
+from January 15 to February 15, over the 30 years of the reference period. During the adjustment itself, these factors are used to correct February 1st of all years of the simulation. 
+Although computational more expensive the rolling window method allows for better adjustment of the annual cycle of simulations.
+Note, this method does not work well with leap years as there is 4 times less data for day 366. To remedy this problem, all simulations as well as the reference product are converted to this "noleap" calendar. 
+This is done by removing every February 29th.
 
 ## References
-Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietroniro, A., and Cannon, A.: High-resolution meteorological forcing data for hydrological modelling and climate change impact analysis in the Mackenzie River Basin, Earth Syst. Sci. Data, 12, 629–645, https://doi.org/10.5194/essd-12-629-2020, 2020.
+Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietroniro, A., and Cannon, A. (2020): High-resolution meteorological forcing data for hydrological modelling and climate change impact analysis in the Mackenzie River Basin, Earth Syst. Sci. Data, 12, 629–645, https://doi.org/10.5194/essd-12-629-2020.
 
-Gelaro R., et al., 2017. The Modern-Era Retrospective Analysis for Research and Applications, Version 2 (MERRA-2). J. Clim., doi: 10.1175/JCLI-D-16-0758.1
+Cannon, A. J., Sobie, S. R., & Murdock, T. Q. (2015). Bias correction of GCM precipitation by quantile mapping: How well do methods preserve changes in quantiles and extremes? Journal of Climate, 28(17), 6938–6959. https://doi.org/10.1175/JCLI-D-14-00754.1
+
+Gelaro, R., McCarty, W., Suarez, M. J., Todling, R., Molod, A., Takacs, L., et al. (2017). The Modern-Era Retrospective Analysis for Research and Applications, Version 2 (MERRA-2). J. Clim., doi: 10.1175/JCLI-D-16-0758.1
 
 Hersbach H., Bell B., Berrisford P., Biavati G., Horányi A., Muñoz Sabater J., Nicolas J., Peubey C., Radu R., Rozum I., Schepers D., Simmons A., Soci C., Dee D., Thépaut J-N. (2018). ERA5 hourly data on single levels from 1979 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). (Accessed on 15-12-2021), 10.24381/cds.adbb2d47.
 
-Kanamitsu, M., et al , 2002: NCEP-DOE AMIP-II Reanalysis (R-2), Bull. Amer. Meteor. Soc., 83, 1631-1643.
+Kanamitsu, M., et al , (2002): NCEP-DOE AMIP-II Reanalysis (R-2), Bull. Amer. Meteor. Soc., 83, 1631-1643.
 
 McKenney, D.W., M.F. Hutchinson, P. Papadol, K. Lawrence, J. Pedlar, K. Campbell, E. Milewska, R.F. Hopkinson, D. Price, and T. Owen, 2011. Customized Spatial Climate Models for North America. Bull. Amer. Meteor. Soc., 92, 1611-1622, https://doi.org/10.1175/2011BAMS3132.1
 
