@@ -1,4 +1,4 @@
-# ESPO-R : Ensemble de Scénarios Polyvalents d'Ouranos - modèles Régionaux du climat
+# ESPO-R : Ouranos' Multipurpose Regional Climate Scenarios
 
 ## Context
 The need to adapt to climate change is present in a growing number of fields, 
@@ -6,12 +6,10 @@ leading to an increase in the demand for climate scenarios for often interrelate
 sectors of activity. In order to meet this growing demand and to ensure the 
 availability of climate scenarios responding to numerous vulnerability, impact and 
 adaptation (VIA) studies, Ouranos is working to create a set of operational 
-multipurpose climate scenarios "Ensemble de Scénarios Polyvalents d'Ouranos” (ESPO)
-covering the territory of North America at a resolution of 0.1 degree (~9km). This 
+multipurpose climate scenarios called "Ensemble de Scénarios Polyvalents d'Ouranos” (ESPO)
+covering North America at a resolution of 0.1 degree (~9km). This 
 operational product actually consists of two related datasets 1) ESPO-R (described 
-here) produced from a process of bias adjustment and statistical downscaling of 
-regional climate simulations from the Canadian Regional Climate Model of Ouranos, as
-well as those available via the CORDEX research program and 2) ESPO-G produced 
+here) produced from bias-adjusted regional climate simulations, and 2) ESPO-G produced 
 following to the same methodology, but from global simulations available via the 
 CMIP program.
 
@@ -26,18 +24,18 @@ and can be easily deployed on High Performance Computing (HPC) environments.
 
 
 ## ESPO-R5 v1.0
+ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations, with additional runs made by Ouranos with the Canadian Regional Climate Model developed at UQAM. The simulation ensemble covers the period XXXX-YYYY at the daily frequency. It includes the variables X,Y,Z. Mention RCPs included. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
 
-TODO : add short description (generation CMIP5 etc ...)
+Include simulation Table
 
 ### Reference data
 ESPO-R5 v1.0 uses the [ERA5-Land reanalysis](https://confluence.ecmwf.int/display/CKB/ERA5-Land)
-(Muñoz Sabater, J., 2019 & 2021) as its reference (or target) dataset .  ERA5-Land is a re-run
+(Muñoz Sabater, J., 2019 & 2021) as its reference (or target) dataset. ERA5-Land is a re-run
 of the land component of the ERA5 climate reanalysis, forced by meteorological fields from 
-ERA5 and cover the period 1950 to the 2-3 months before the present. ERA5-Land benefits numerous 
-improvements making it more accurate for all types of land applications. In particular, ERA5-Land 
-runs at enhanced resolution (9 km vs 31 km in ERA5).
+ERA5 and cover the period 1950 to the 2-3 months before the present. ERA5-Land benefits from numerous 
+improvements, making it more accurate for all types of land applications than the original ERA5. In particular, ERA5-Land runs at enhanced resolution (9 km vs 31 km in ERA5).
 
-ERA5-land was retained after an evaluation of multiple candidate datasets (table 1) against observed data for the 
+ERA5-land was retained after an evaluation of multiple candidate datasets (Table 1) against observed data for the 
 variables of daily maximum and minimum temperatures, and daily total precipitation for the period 1981-2010.  
 Observed data for the comparison consisted of Third Generation of Homogenized Daily Temperature for Canada (Vincent et al. 2020), 
 as well as Second Generation of Daily Adjusted Precipitation for Canada (Mékis and Vincent. 2011) (AHCCD). To be included in the 
