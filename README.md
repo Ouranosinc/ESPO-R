@@ -96,7 +96,7 @@ c)
 TODO add description of vars and table of simulations
 
 ### Methodology
-The temperature and precipitation data from the simulations in table 2 were first extracted over an area covering all of Quebec and, 
+The temperature and precipitation data from the simulations in table 2 were first extracted over an area covering North America and, 
 if necessary, converted into daily values. Then using the [ESMF software](https://earthsystemmodeling.org/regrid/), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface, all the extracted simulation data is interpolated 
 bilinearly to the ERA5-Land grid.
 
@@ -106,9 +106,9 @@ First, the adjustment factors are calculated based on reference data and simulat
 The reference period chosen here is 1981-2010. Adjustments are univariate, where corrections are applied separately for each of the 3 variables.
 Data is adjusted for each day of the year, using a rolling window of 31 days. For example, the adjustment factors for February 1 (day 32) are calculated using data
 from January 15 to February 15, over the 30 years of the reference period. During the adjustment itself, these factors are used to correct February 1st of all years of the simulation. 
-Although computational more expensive the rolling window method allows for better adjustment of the annual cycle of simulations.
+Although computational more expensive the rolling window method allows for better adjustment of the annual cycle.
 Note, this method does not work well with leap years as there is 4 times less data for day 366. To remedy this problem, all simulations as well as the reference product are converted to this "noleap" calendar. 
-This is done by removing every February 29th.
+
 
 ## References
 Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietroniro, A., and Cannon, A. (2020): High-resolution meteorological forcing data for hydrological modelling and climate change impact analysis in the Mackenzie River Basin, Earth Syst. Sci. Data, 12, 629–645, https://doi.org/10.5194/essd-12-629-2020.
