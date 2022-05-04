@@ -10,7 +10,7 @@ multipurpose climate scenarios called "Ensemble de Scénarios Polyvalents d'Oura
 covering North America at a resolution of 0.1 degree (~9km). This 
 operational product actually consists of two related datasets 1) ESPO-R (described 
 here) produced from bias-adjusted regional climate simulations, and 2) ESPO-G produced 
-following to the same methodology, but from global simulations available via the 
+following the same methodology, but from global simulations available via the 
 CMIP program.
 
 
