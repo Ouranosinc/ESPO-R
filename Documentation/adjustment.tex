@@ -1,6 +1,7 @@
 \documentclass[letterpaper,10pt]{article}
 \usepackage{amsmath}
 \usepackage{hyperref}
+\usepackage[margin=2cm]{geometry}
 
 \begin{document}
 \title{Bias Adjustment of ESPO-R5 v1.0}
@@ -8,64 +9,91 @@
 \maketitle
 
 The temperature and precipitation data from the simulations were first extracted over an area covering North America and, if necessary, converted into daily values.
-Then using the \href{https://earthsystemmodeling.org/regrid/}{ESMF software}, accessed through its python \href{https://xesmf.readthedocs.io/en/latest/}{xESMF} interface, all the extracted simulation data is interpolated 
-bilinearly to the ERA5-Land grid.
+Then using the \href{https://earthsystemmodeling.org/regrid/}{ESMF software}, accessed through its python \href{https://xesmf.readthedocs.io/en/latest/}{xESMF} interface, all the extracted simulation data is interpolated bilinearly to the ERA5-Land grid.
 
 The ESPO-R5 v1.0 bias adjustment procedure then uses \href{https://xclim.readthedocs.io/en/stable/sdba.html}{xclim} algorithms to adjust simulation bias following a quantile mapping procedure.
-In particular, the algorithm used is inspired by the "Detrended Quantile Mapping" method described by Cannon (2015).
+In particular, the algorithm used is inspired by the "Detrended Quantile Mapping" method described by \cite{Cannon15}.
 The procedure is univariate, bipartite, acts differently on the trends and the anomalies and is applied iteratively on each day of the year (grouping) and on each grid point.
 
-\subsection{Data}
-The adjustment target is the reference $Y_r$ and the simulated calibration data is $X_c$, both extracted over the 1981-2010 reference period.
-The simulation data to be adjusted is $X_s$, it includes all timesteps (1951-2100).
-The bias-adjusted data (or "scenario") is $X_{ba}$.
+\section{Variables}
+Adjustments are applied separately for each of the 3 variables.
+Adjusting \texttt{tasmax} and \texttt{tasmin} independently can lead to physical inconsistencies in the final data (i.e. cases with \texttt{tasmin} > \texttt{tasmax})  (\cite{Thrasher12}, \cite{Agbazo20}).
+To ensure a physically consistent dataset (for this aspect at least), we compute the daily temperature range (or amplitude; \texttt{dtr = tasmax - tasmax}) and adjust this variable, in addition to \texttt{tasmax} and \texttt{pr}.
+\texttt{tasmin} is reconstructed after the bias-adjustment and this is the variable we store.
 
-\subsection{Grouping}
-Data is adjusted for each day of the year, using a rolling window of 31 days.
+While \texttt{tasmax} has no physical bounds in practice, this is not the case for \texttt{pr} and \texttt{dtr} where a lower bound, at 0, exists.
+Because of this, the adjustment process explained below exists in two flavours : additive and multiplicative.
+In the latter, it is mathematically impossible for adjusted data to go under 0.
+
+\section{Bias-adjustment}
+The bias adjustment acts independently on each day of the year and each grid point.
+To make the procedure more robust a window of 31 days around the current day of year is included in the inputs of the calibration (training step).
 For example, the adjustment for February 1 (day 32) is calibrated using data from January 15 to February 15, over the 30 years of the reference period. 
-During the adjustment itself, the adjustment is used for February 1st only, for all years of the simulation. 
+For leap years, this would mean that there are 4 times fewer datapoints for the 366th day of the year.
+To circumvent this issue, we convert all inputs to a "noleap" calendar by dropping data on the 29th of February, except for simulations using the "360 day" calendar.
+In the latter case, the simulations are untouched but the reference data is converted to that calendar by dropping extra days taken at regular intervals\footnote{On a normal year, February 6th, April 20th, July 2nd, September 13th and November 25th are dropped. For a leap year, it is January 31st, April 1st, June 1st, August 1st, September 31st and December 1st.}
 
 \subsection{Detrending}
-For each day of the year and each grid points, we first compute the averages and anomalies of the reference data ($\overline{Y_r}, Y_r'$) and the simulations ($\overline{X_h}, X_h'$) over the reference period, 1981-2010.
+For each day of the year and each grid points, we first compute the averages and anomalies of the reference data ($Y_r \to (\overline{Y_r}, Y_r')$) and the simulations ($X_c\to (\overline{X_c}, X_c')$) over the reference period, 1981-2010. 
 
-Instead of a simple moving mean, $X_s$ is detrended with a locally weighted regression (LOESS; Cleveland, 1979).
-We chose this method for its slightly heavier weights given at the center of the moving window, reducing impacts of abrupt interannual changes on the trend and anomalies. It also has a more robust handling of the extremeties of the timeseries. The LOESS window had a 30-year width and a tricube shape, the local regression was of degree 0 and only one iteration was performed. The detrending was applied on each day of the year but after averaging over the 31 day window and it yielded the trend $\overline{X_s}$ and the residuals $X_s'$.
+Instead of a simple moving mean, $X_s$ is detrended with a locally weighted regression (LOESS; \cite{Cleveland79}).
+We chose this method for its slightly heavier weights given at the center of the moving window, reducing impacts of abrupt interannual changes on the trend and anomalies. It also has a more robust handling of the extremeties of the timeseries.
+The LOESS window had a 30-year width and a tricube shape, the local regression was of degree 0 and only one iteration was performed.
+The detrending was applied on each day of the year but after averaging over the 31-day window and it yielded the trend $\overline{X_s}$ and the residuals $X_s'$.
 
-\subsection{Algorithm}
-\subsubsection{Adjustment of the residuals}
-With $F_{Y_r'}$ and $F_{X_h'}$ the empirical cumulative distribution functions (CDF) of $Y_r'$ and $X_r'$ respectively, the adjustment of anomalies is split in two steps. In the first, an adjustment factor function is computed:
+\subsection{Adjustment of the residuals}
+With $F_{Y_r'}$ and $F_{X_c'}$ the empirical cumulative distribution functions (CDF) of $Y_r'$ and $X_c'$ respectively, an adjustment factor function is first computed:
+\begin{align}
+A_+(q) := F^{-1}_{Y_r'}\left(q\right) - F^{-1}_{X_c'}\left(q\right)  && A_\times(q) := \frac{F^{-1}_{Y_r'}\left(q\right)}{F^{-1}_{X_c'}\left(q\right)}
+\end{align}
+Where $q$ is a quantile (in range $[0, 1]$), $A_+(q)$ is the additive function used with \texttt{tasmax} and $A_\times(q)$ the multiplicative one, used with \texttt{pr} and \texttt{dtr}.
+The CDFs are estimated from the 30 31-day windows.
+In the implementation, maps of $A$ are saved to disk by sampling $q$ with 50 values, going from 0.01 to 0.99 by steps of 0.02.
+The adjustment is then as follows:
+\begin{align}
+X_{ba}' = X_s' + A_+\left(F_{X_c'}(X_s')\right) && X_{ba}' = X_s' \times A_\times\left(F_{X_c'}(X_s')\right)
+\end{align}
+Nearest neighbor interpolation is used to map $F_{X_c'}(X_s')$ to the 50 values of $q$.
+Constant extrapolation is used for values of $X_s'$ outside the range of $X_c'$.
 
-\begin{align*}
+\subsection{Adjustment of the trend}
+In the training step, as simple scaling or offset factor is computed from the averages:
+\begin{align}
+C_+ = \overline{Y_r} - \overline{X_c} && C_\times = \frac{\overline{Y_r}}{\overline{X_c}}
+\end{align}
+This factor is applied to the trend in the adjustment step:
+\begin{align}
+\overline{X_{ba}} = \overline{X_s} + C_+  && \overline{X_{ba}} = \overline{X_s}\times C_\times
+\end{align}
 
+\subsection{Final scenario}
+Finally, the bias-adjusted timeseries for this day of year, grid point and variable is:
+\begin{align}
+X_{ba} = \overline{X_{ba}} + X_{ba}'
+\end{align}
 
-\begin{align*}
-X_{ba}' &= X_s' + F^{-1}_{Y_r'}\left(F_{X_c'}\left(X_s'\right)\right) - F^{-1}_{X_c'}\left(F_{X_c'}\left(X_s'\right)\right) \tag{additive} \\
-X_{ba}' &= X_s'\frac{F^{-1}_{Y_r'}\left(F_{X_c'}\left(X_s'\right)\right)}{F^{-1}_{X_c'}\left(F_{X_c'}\left(X_s'\right)\right)} \tag{multiplicative}
-\end{align*}
+\section{Pre-processing of precipitation}
+However, the multiplicative mode is prone to division by zero, especially with precipitation where values of 0 are quite common.
+This problem is avoided by modifying the inputs of the calibration step where the zeros of precipitation are replaced by random values between 0 (excluded) and 0.01 mm/d.
+The \texttt{dtr} timeseries are not modified since it is almost impossible to have zeros for that variable and the few that appear are dissolved by the aggregations of the calibration step.
 
-The implemented algorithm splits the process in two steps. doesn't use the full CDF
+As observed by \cite{Themessl12}, when the model has an higher dry-day frequency than the reference, the calibration step of the quantile mapping adjustment will incorrectly map all dry days to precipitation days, resulting in a wet bias.
+The frequency adaptation method finds the fraction of "extra" dry days:
+\begin{align}
+\Delta P_{dry} = \frac{F_{X_c}(D) - F_{Y_r}(D)}{F_{X_c}}
+\end{align}
+Where $D$ is the dry-day threshold, taken here to be 1 mm/d.
+This fraction of dry days is transformed into wet days by injecting random values taken in the interval $[D, F^{-1}_{Y_r}\left(F_{X_c}(D)\right)]$.
 
-\subsubsection{Adjustment of the trend}
+Both pre-processing function are applied only on the calibration step inputs ($Y_r$ and $X_c$) before the division between average and anomalies.
+As such, only the adjustment factors are impacted by them and there is no explicitly injected precipitation in the final scenarios.
 
-An offset factor is computed betwen the averages.
-The entire simulation is detrended using a Loess with a width of 30 years.
-The residuals corrected with the adjustment factors.
-The trend is adjusted with the offset factor.
-
-\subsection{Variables}
-Adjustments are applied separately for each of the 3 variables.
-Adjusting \texttt{tasmax} and  \texttt{tasmin} independantly can lead to physical inconsistencies (\texttt{tasmin} > \texttt{tasmax}) in the final data (Thrasher et al., 2012, Agbazo and Grenier, 2020).
-Instead, we compute the daily temperature range (or amplitude \texttt{dtr = tasmax - tasmax}) and adjust this variable in addition to \texttt{tasmax} and  \texttt{pr}.
-
-
-\subsection{Pre-processing of precipitation}
-Our quantile mapping methods are prone to 
-
-
-\texttt{tasmax} is adjusted in an additive way : the adjustment and offset factors are added to the residuals and trend.
-\texttt{pr} and \texttt{dtr} are adjusted in an multiplicative way : the adjustment and offset (scaling) factors are multiplied to the residuals and trend.
-Although computational more expensive the rolling window method allows for better adjustment of the annual cycle.
-Note, this method does not work well with leap years as there is 4 times less data for day 366.
-To remedy this problem, all simulations as well as the reference product are converted to this "noleap" calendar. 
+\begin{thebibliography}{6}
+\bibitem{Agbazo20} Agbazo, M. N., \& Grenier, P. (2020). Characterizing and avoiding physical inconsistency generated by the application of univariate quantile mapping on daily minimum and maximum temperatures over Hudson Bay. International Journal of Climatology, 40(8), 3868–3884. https://doi.org/10.1002/joc.6432
+\bibitem{Cannon15} Cannon, A. J., Sobie, S. R., \& Murdock, T. Q. (2015). Bias Correction of GCM Precipitation by Quantile Mapping: How Well Do Methods Preserve Changes in Quantiles and Extremes? Journal of Climate, 28(17), 6938–6959. https://doi.org/10.1175/JCLI-D-14-00754.1
+\bibitem{Cleveland79} Cleveland, W. S. (1979). Robust Locally Weighted Regression and Smoothing Scatterplots. Journal of the American Statistical Association, 74(368), 829–836. https://doi.org/10.1080/01621459.1979.10481038
+\bibitem{Thrasher12} Thrasher, B., Maurer, E. P., McKellar, C., \& Duffy, P. B. (2012). Technical Note: Bias correcting climate model simulated daily temperature extremes with quantile mapping. Hydrology and Earth System Sciences, 16(9), 3309–3314. https://doi.org/10.5194/hess-16-3309-2012
+\bibitem{Themessl12} Themeßl, M. J., Gobiet, A., \& Heinrich, G. (2012). Empirical-statistical downscaling and error correction of regional climate models and its impact on the climate change signal. Climatic Change, 112(2), 449–468. https://doi.org/10.1007/s10584-011-0224-4
+\end{thebibliography}
 
 \end{document}
