@@ -1,0 +1,71 @@
+\documentclass[letterpaper,10pt]{article}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\begin{document}
+\title{Bias Adjustment of ESPO-R5 v1.0}
+\author{Pascal Bourgault, Travis Logan, Trevor J. Smith, Juliette Lavoie}
+\maketitle
+
+The temperature and precipitation data from the simulations were first extracted over an area covering North America and, if necessary, converted into daily values.
+Then using the \href{https://earthsystemmodeling.org/regrid/}{ESMF software}, accessed through its python \href{https://xesmf.readthedocs.io/en/latest/}{xESMF} interface, all the extracted simulation data is interpolated 
+bilinearly to the ERA5-Land grid.
+
+The ESPO-R5 v1.0 bias adjustment procedure then uses \href{https://xclim.readthedocs.io/en/stable/sdba.html}{xclim} algorithms to adjust simulation bias following a quantile mapping procedure.
+In particular, the algorithm used is inspired by the "Detrended Quantile Mapping" method described by Cannon (2015).
+The procedure is univariate, bipartite, acts differently on the trends and the anomalies and is applied iteratively on each day of the year (grouping) and on each grid point.
+
+\subsection{Data}
+The adjustment target is the reference $Y_r$ and the simulated calibration data is $X_c$, both extracted over the 1981-2010 reference period.
+The simulation data to be adjusted is $X_s$, it includes all timesteps (1951-2100).
+The bias-adjusted data (or "scenario") is $X_{ba}$.
+
+\subsection{Grouping}
+Data is adjusted for each day of the year, using a rolling window of 31 days.
+For example, the adjustment for February 1 (day 32) is calibrated using data from January 15 to February 15, over the 30 years of the reference period. 
+During the adjustment itself, the adjustment is used for February 1st only, for all years of the simulation. 
+
+\subsection{Detrending}
+For each day of the year and each grid points, we first compute the averages and anomalies of the reference data ($\overline{Y_r}, Y_r'$) and the simulations ($\overline{X_h}, X_h'$) over the reference period, 1981-2010.
+
+Instead of a simple moving mean, $X_s$ is detrended with a locally weighted regression (LOESS; Cleveland, 1979).
+We chose this method for its slightly heavier weights given at the center of the moving window, reducing impacts of abrupt interannual changes on the trend and anomalies. It also has a more robust handling of the extremeties of the timeseries. The LOESS window had a 30-year width and a tricube shape, the local regression was of degree 0 and only one iteration was performed. The detrending was applied on each day of the year but after averaging over the 31 day window and it yielded the trend $\overline{X_s}$ and the residuals $X_s'$.
+
+\subsection{Algorithm}
+\subsubsection{Adjustment of the residuals}
+With $F_{Y_r'}$ and $F_{X_h'}$ the empirical cumulative distribution functions (CDF) of $Y_r'$ and $X_r'$ respectively, the adjustment of anomalies is split in two steps. In the first, an adjustment factor function is computed:
+
+\begin{align*}
+
+
+\begin{align*}
+X_{ba}' &= X_s' + F^{-1}_{Y_r'}\left(F_{X_c'}\left(X_s'\right)\right) - F^{-1}_{X_c'}\left(F_{X_c'}\left(X_s'\right)\right) \tag{additive} \\
+X_{ba}' &= X_s'\frac{F^{-1}_{Y_r'}\left(F_{X_c'}\left(X_s'\right)\right)}{F^{-1}_{X_c'}\left(F_{X_c'}\left(X_s'\right)\right)} \tag{multiplicative}
+\end{align*}
+
+The implemented algorithm splits the process in two steps. doesn't use the full CDF
+
+\subsubsection{Adjustment of the trend}
+
+An offset factor is computed betwen the averages.
+The entire simulation is detrended using a Loess with a width of 30 years.
+The residuals corrected with the adjustment factors.
+The trend is adjusted with the offset factor.
+
+\subsection{Variables}
+Adjustments are applied separately for each of the 3 variables.
+Adjusting \texttt{tasmax} and  \texttt{tasmin} independantly can lead to physical inconsistencies (\texttt{tasmin} > \texttt{tasmax}) in the final data (Thrasher et al., 2012, Agbazo and Grenier, 2020).
+Instead, we compute the daily temperature range (or amplitude \texttt{dtr = tasmax - tasmax}) and adjust this variable in addition to \texttt{tasmax} and  \texttt{pr}.
+
+
+\subsection{Pre-processing of precipitation}
+Our quantile mapping methods are prone to 
+
+
+\texttt{tasmax} is adjusted in an additive way : the adjustment and offset factors are added to the residuals and trend.
+\texttt{pr} and \texttt{dtr} are adjusted in an multiplicative way : the adjustment and offset (scaling) factors are multiplied to the residuals and trend.
+Although computational more expensive the rolling window method allows for better adjustment of the annual cycle.
+Note, this method does not work well with leap years as there is 4 times less data for day 366.
+To remedy this problem, all simulations as well as the reference product are converted to this "noleap" calendar. 
+
+\end{document}

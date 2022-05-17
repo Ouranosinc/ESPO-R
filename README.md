@@ -96,18 +96,23 @@ c)
 TODO add description of vars and table of simulations
 
 ### Methodology
-The temperature and precipitation data from the simulations in table 2 were first extracted over an area covering North America and, 
-if necessary, converted into daily values. Then using the [ESMF software](https://earthsystemmodeling.org/regrid/), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface, all the extracted simulation data is interpolated 
-bilinearly to the ERA5-Land grid.
+The temperature and precipitation data from the simulations in table 2 were first extracted over an area covering North America and, if necessary, converted into daily values.
+Then using the [ESMF software](https://earthsystemmodeling.org/regrid/), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface, all the extracted simulation data is interpolated bilinearly to the ERA5-Land grid.
 
-The ESPO-R5 v.1.0 bias adjustment procedure then uses  [xclim](https://xclim.readthedocs.io/en/stable/sdba.html) algorithms to adjust simulation bias following a quantile mapping 
-procedure. In particular, the algorithm used follows the method of "Detrended Quantile Mapping" described by Cannon (2015), but with some modifications. The procedure is bipartite. 
-First, the adjustment factors are calculated based on reference data and simulations over a common period (training stage). Then the entire simulation is corrected with these factors (adjustment step). 
-The reference period chosen here is 1981-2010. Adjustments are univariate, where corrections are applied separately for each of the 3 variables.
-Data is adjusted for each day of the year, using a rolling window of 31 days. For example, the adjustment factors for February 1 (day 32) are calculated using data
-from January 15 to February 15, over the 30 years of the reference period. During the adjustment itself, these factors are used to correct February 1st of all years of the simulation. 
+The ESPO-R5 v.1.0 bias adjustment procedure then uses [xclim](https://xclim.readthedocs.io/en/stable/sdba.html) (Logan et al. 2021) algorithms to adjust simulation bias following a quantile mapping procedure.
+In particular, the algorithm used is inspired by the "Detrended Quantile Mapping" (DQM) method described by Cannon (2015).
+The procedure is bipartite.
+First, the adjustment factors are calculated based on reference data and simulations over a common period (training stage).
+Then the entire simulation is corrected with these factors (adjustment step). 
+The reference period chosen here is 1981-2010.
+Adjustments are univariate, where corrections are applied separately for each of the 3 variables.
+Data is adjusted for each day of the year, using a rolling window of 31 days.
+For example, the adjustment factors for February 1 (day 32) are calculated using data from January 15 to February 15, over the 30 years of the reference period.
+During the adjustment itself, these factors are used to correct February 1st of all years of the simulation. 
 Although computational more expensive the rolling window method allows for better adjustment of the annual cycle.
-Note, this method does not work well with leap years as there is 4 times less data for day 366. To remedy this problem, all simulations as well as the reference product are converted to this "noleap" calendar. 
+Note, this method does not work well with leap years as there is 4 times less data for day 366.
+To remedy this problem, all simulations as well as the reference product are converted to this "noleap" calendar. 
+A more detailed explanation of the adjustment process is given in [the documentation](Documentation/adjustment.pdf).
 
 
 ## References
