@@ -18,15 +18,47 @@ CMIP program.
 The production and regular update of ESPO-R/G operational datasets represents a challenge
 in terms of computational resources. Ouranos has invested a great deal of effort in the
 development of powerful tools for this type of data processing via its [xclim software 
-package](https://xclim.readthedocs.io/en/stable/).  Built upon the packages xarray and 
+package](https://xclim.readthedocs.io/en/stable/) (Logan et al., 2021).  Built upon the packages xarray and 
 dask, xclim benefits from simple to use parallelization and distributed computing tools 
 and can be easily deployed on High Performance Computing (HPC) environments.
 
 
 ## ESPO-R5 v1.0
-ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations, with additional runs made by Ouranos with the Canadian Regional Climate Model developed at UQAM. The simulation ensemble covers the period XXXX-YYYY at the daily frequency. It includes the variables X,Y,Z. Mention RCPs included. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
+ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations, with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM. The simulation ensemble covers the period 1951-2100 at the daily frequency. It includes the variables `tasmin`, `tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
 
-Include simulation Table
+| **Driving: institution** | **Driving : model** | **Driving : member id** | **Institution** | **Model** | **Experiment id** | **Resolution** | **CORDEX** |
+|--------------------------|---------------------|-------------------------|-----------------|-----------|-------------------|----------------|------------|
+| CCCma                    | CanESM2             | r1i1p1                  | CCCma           | CanRCM4   | rcp85             | 22i            | X          |
+| CCCma                    | CanESM2             | r1i1p1                  | CCCma           | CanRCM4   | rcp45             | 22i            | X          |
+| ICHEC                    | EC-EARTH            | r3i1p1                  | DMI             | HIRHAM5   | rcp45             | 44i            | X          |
+| ICHEC                    | EC-EARTH            | r3i1p1                  | DMI             | HIRHAM5   | rcp85             | 44i            | X          |
+| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | NCAR            | RegCM4    | rcp85             | 22i            | X          |
+| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i            | X          |
+| MOHC                     | HadGEM2-ES          | r1i1p1                  | NCAR            | RegCM4    | rcp85             | 22i            | X          |
+| MOHC                     | HadGEM2-ES          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i            | X          |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | NCAR            | RegCM4    | rcp85             | 22i            | X          |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i            | X          |
+| CCCma                    | CanESM2             | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
+| CCCma                    | CanESM2             |                         | Ouranos         | CRCM5     | rcp45             |                |            |
+| CNRM-CERFACS             | CNRM-CM5            | r1i1p1                  | Ouranos         | CRCM5     | rcp45             | 22i            | X          |
+| CNRM-CERFACS             | CNRM-CM5            | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
+| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
+| NOAA-GFDL                | GFDL-ESM2M          |                         | Ouranos         | CRCM5     | rcp45             |                |            |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
+| MPI-M                    | MPI-ESM-LR          |                         | Ouranos         | CRCM5     | rcp45             |                |            |
+| CCCma                    | CanESM2             | r1i1p1                  | SMHI            | RCA4      | rcp45             | 44i            | X          |
+| CCCma                    | CanESM2             | r1i1p1                  | SMHI            | RCA4      | rcp85             | 44i            | X          |
+| ICHEC                    | EC-EARTH            | r12i1p1                 | SMHI            | RCA4      | rcp45             | 44i            | X          |
+| ICHEC                    | EC-EARTH            | r12i1p1                 | SMHI            | RCA4      | rcp85             | 44i            | X          |
+| CCCma                    | CanESM2             | r1i1p1                  | UQAM            | CRCM5     | rcp45             | 44i            | X          |
+| CCCma                    | CanESM2             | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i            | X          |
+| UQAM                     | GEMatm-Can-ESMsea   |                         | UQAM            | CRCM5     | rcp85             | 22i            | X          |
+| UQAM                     | GEMatm-MPI-ESMsea   |                         | UQAM            | CRCM5     | rcp85             | 22i            | X          |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i            | X          |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | UQAM            | CRCM5     | rcp45             | 22i            | X          |
+| MPI-M                    | MPI-ESM-MR          | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i            |            |
+
+
 
 ### Reference data
 ESPO-R5 v1.0 uses the [ERA5-Land reanalysis](https://confluence.ecmwf.int/display/CKB/ERA5-Land)
@@ -97,9 +129,9 @@ TODO add description of vars and table of simulations
 
 ### Methodology
 The temperature and precipitation data from the simulations in table 2 were first extracted over an area covering North America and, if necessary, converted into daily values.
-Then using the [ESMF software](https://earthsystemmodeling.org/regrid/), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface, all the extracted simulation data is interpolated bilinearly to the ERA5-Land grid.
+Then using the [ESMF software](https://earthsystemmodeling.org/regrid/) (DeLuca et al., 2012), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface (Zhuang et al., 2021), all the extracted simulation data is interpolated bilinearly to the ERA5-Land grid.
 
-The ESPO-R5 v.1.0 bias adjustment procedure then uses [xclim](https://xclim.readthedocs.io/en/stable/sdba.html) (Logan et al. 2021) algorithms to adjust simulation bias following a quantile mapping procedure.
+The ESPO-R5 v.1.0 bias adjustment procedure then uses [xclim](https://xclim.readthedocs.io/en/stable/sdba.html) algorithms to adjust simulation bias following a quantile mapping procedure.
 In particular, the algorithm used is inspired by the "Detrended Quantile Mapping" (DQM) method described by Cannon (2015).
 The procedure is bipartite.
 First, the adjustment factors are calculated based on reference data and simulations over a common period (training stage).
@@ -107,8 +139,6 @@ Then the entire simulation is corrected with these factors (adjustment step).
 The reference period chosen here is 1981-2010.
 Adjustments are univariate, where corrections are applied separately for each of the 3 variables.
 Data is adjusted for each day of the year, using a rolling window of 31 days.
-For example, the adjustment factors for February 1 (day 32) are calculated using data from January 15 to February 15, over the 30 years of the reference period.
-During the adjustment itself, these factors are used to correct February 1st of all years of the simulation. 
 Although computational more expensive the rolling window method allows for better adjustment of the annual cycle.
 Note, this method does not work well with leap years as there is 4 times less data for day 366.
 To remedy this problem, all simulations as well as the reference product are converted to this "noleap" calendar. 
@@ -120,11 +150,15 @@ Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietro
 
 Cannon, A. J., Sobie, S. R., & Murdock, T. Q. (2015). Bias correction of GCM precipitation by quantile mapping: How well do methods preserve changes in quantiles and extremes? Journal of Climate, 28(17), 6938–6959. https://doi.org/10.1175/JCLI-D-14-00754.1
 
+DeLuca, C., Theurich, G., & Balaji, V. (2012). The Earth System Modeling Framework. In S. Valcke, R. Redler, & R. Budich (Eds.), Earth System Modelling—Volume 3: Coupling Software and Strategies (pp. 43–54). Springer. https://doi.org/10.1007/978-3-642-23360-9_6
+
 Gelaro, R., McCarty, W., Suarez, M. J., Todling, R., Molod, A., Takacs, L., et al. (2017). The Modern-Era Retrospective Analysis for Research and Applications, Version 2 (MERRA-2). J. Clim., doi: 10.1175/JCLI-D-16-0758.1
 
 Hersbach H., Bell B., Berrisford P., Biavati G., Horányi A., Muñoz Sabater J., Nicolas J., Peubey C., Radu R., Rozum I., Schepers D., Simmons A., Soci C., Dee D., Thépaut J-N. (2018). ERA5 hourly data on single levels from 1979 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). (Accessed on 15-12-2021), 10.24381/cds.adbb2d47.
 
 Kanamitsu, M., et al , (2002): NCEP-DOE AMIP-II Reanalysis (R-2), Bull. Amer. Meteor. Soc., 83, 1631-1643.
+
+Logan, T., Bourgault, P., Smith, T. J., Huard, D., Biner, S., Labonté, M.-P., Rondeau-Genesse, G., Fyke, J., Aoun, A., Roy, P., Ehbrecht, C., Caron, D., Stephens, A., Whelan, C., Low, J.-F., Keel, T., Lavoie, J., Tanguy, M., Barnes, C., … Quinn, J. (2022). Ouranosinc/xclim (0.35.0) [Python]. Zenodo. https://doi.org/10.5281/zenodo.6407112
 
 McKenney, D.W., M.F. Hutchinson, P. Papadol, K. Lawrence, J. Pedlar, K. Campbell, E. Milewska, R.F. Hopkinson, D. Price, and T. Owen, 2011. Customized Spatial Climate Models for North America. Bull. Amer. Meteor. Soc., 92, 1611-1622, https://doi.org/10.1175/2011BAMS3132.1
 
@@ -139,3 +173,5 @@ Ruane, A.C., R. Goldberg, and J. Chryssanthacopoulos, 2015: AgMIP climate forcin
 Saha, S., et al. 2010. NCEP Climate Forecast System Reanalysis (CFSR) Selected Hourly Time-Series Products, January 1979 to December 2010. Research Data Archive at the National Center for Atmospheric Research, Computational and Information Systems Laboratory. https://doi.org/10.5065/D6513W89
 
 Vincent, L.A., M.M. Hartwell and X.L. Wang, 2020: A Third Generation of Homogenized Temperature for Trend Analysis and Monitoring Changes in Canada’s Climate. Atmosphere-Ocean. https://doi.org/10.1080/07055900.2020.1765728
+
+Zhuang, J., Dussin, R., Huard, D., Bourgault, P., Banihirwe, A., Raynaud, S., Malevich, B., Schupfner, M., Hamman, J., Levang, S., Jüling, A., Almansi, M., Fernandes, F., Rondeau-Genesse, G., Rasp, S., & Bell, R. (2021). pangeo-data/xESMF (0.6.2) [Python]. Zenodo. https://doi.org/10.5281/zenodo.5721118
