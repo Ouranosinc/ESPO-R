@@ -2,6 +2,7 @@
 import argparse
 import atexit
 from pathlib import Path
+from clisops.core.subset import subset_bbox
 # from dask.diagnostics import ProgressBar
 from dask.distributed import Client, performance_report
 from dask import compute, config as dskconf
@@ -10,20 +11,38 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from xclim import atmos
 from xclim.core.calendar import convert_calendar, get_calendar
-from xclim.sdba import properties
+from xclim.sdba import measures, properties
 
-from workflow.biasadjust import train_qm, adjust_qm, dtr, tasmin_from_dtr, add_preprocessing_attr
-from workflow.catalog import DataCatalog
-from workflow.common import minimum_calendar, translate_time_chunk, stack_drop_nans, unstack_fill_nan
-from workflow.config import CONFIG, load_config
-from workflow.diagnostics import fig_compare_and_diff, fig_bias_compare_and_diff, rmse
-from workflow.io import clean_up_ds, to_zarr_skip_existing
-from workflow.regridding import regrid
-from workflow.utils import get_task_checker, measure_time, rechunk, send_mail, send_mail_on_exit, timeout
+from xscen.biasadjust import train, adjust
+from xscen.catalog import DataCatalog
+from xscen.common import translate_time_chunk, stack_drop_nans, unstack_fill_nan
+from xscen.config import CONFIG, load_config
+from xscen.extraction import search_data_catalogs, extract_dataset
+from xscen.io import rechunk, save_to_zarr
+from xscen.regridding import regrid
+from xscen.scr_utils import measure_time, send_mail, send_mail_on_exit, timeout
+from variables import dtr, tasmin_from_dtr
+
 
 # Load configuration, verbose only for the master process.
-load_config('paths.yml', 'my_config.yml', verbose=(__name__ == '__main__'))
+load_config('../paths.yml', '../my_config.yml', verbose=(__name__ == '__main__'))
 logger = logging.getLogger('workflow')
+
+
+def get_task_checker(tasks, start=0, stop=-1, exclude=None):
+    exclude = exclude or []
+    if isinstance(start, int):
+        start = tasks[start]
+    if isinstance(stop, int):
+        stop = tasks[stop]
+
+    # Transform into a dictionary where keys are task names and values their rank.
+    tasks = dict(map(reversed, enumerate(tasks)))
+
+    def _task_checker(task):
+        return tasks[start] <= tasks[task] <= tasks[stop] and task not in exclude
+
+    return _task_checker
 
 
 def compute_properties(sim, ref, ref_period, fut_period):
@@ -33,11 +52,14 @@ def compute_properties(sim, ref, ref_period, fut_period):
 
     out = xr.Dataset(data_vars={
         'pr_wet_freq_q99_hist': properties.relative_frequency(ds_hist.pr, op='>=', thresh=pr_threshes.sel(quantile=0.99, drop=True), group='time'),
-        'tx_mean_rmse': rmse(atmos.tx_mean(ds_hist.tasmax, freq='MS').chunk({'time': -1}), atmos.tx_mean(ref.tasmax, freq='MS').chunk({'time': -1})),
-        'tn_mean_rmse': rmse(atmos.tn_mean(ds_hist.tasmin, freq='MS').chunk({'time': -1}), atmos.tn_mean(ref.tasmin, freq='MS').chunk({'time': -1})),
-        'prcptot_rmse': rmse(atmos.precip_accumulation(ds_hist.pr, freq='MS').chunk({'time': -1}), atmos.precip_accumulation(ref.pr, freq='MS').chunk({'time': -1})),
         'nan_count': sim.to_array().isnull().sum('time').mean('variable'),
     })
+    if sim is not ref:
+        out = out.assign(
+            tx_mean_rmse=measures.rmse(atmos.tx_mean(ds_hist.tasmax, freq='MS').chunk({'time': -1}), atmos.tx_mean(ref.tasmax, freq='MS').chunk({'time': -1})),
+            tn_mean_rmse=measures.rmse(atmos.tn_mean(ds_hist.tasmin, freq='MS').chunk({'time': -1}), atmos.tn_mean(ref.tasmin, freq='MS').chunk({'time': -1})),
+            prcptot_rmse=measures.rmse(atmos.precip_accumulation(ds_hist.pr, freq='MS').chunk({'time': -1}), atmos.precip_accumulation(ref.pr, freq='MS').chunk({'time': -1}))
+        )
     out['pr_wet_freq_q99_hist'].attrs['long_name'] = 'Relative frequency of days with precip over the 99th percentile of the reference, in the present.'
 
     if fut_period is not None:
@@ -57,11 +79,14 @@ def _maybe_unstack(ds, rechunk=None):
 
 if __name__ == '__main__':
     daskkws = CONFIG['dask'].get('client', {})
+    daskkws.pop('n_workers')
+    daskkws.pop('memory_limit')
+    daskkws.pop('threads_per_worker')
     dskconf.set(**{k: v for k, v in CONFIG['dask'].items() if k != 'client'})
 
     # ProgressBar().register()
     steps = [
-        "makeref", "regrid", "rechunk", "simproperties",
+        "makeref", "extract_regrid", "rechunk", "simproperties",
         "train", "adjust", "cleanup", "finalzarr", "scenproperties", "checkup"
     ]
     parser = argparse.ArgumentParser(
@@ -113,7 +138,7 @@ if __name__ == '__main__':
             dref = xr.open_zarr(CONFIG['paths']['reference'])
 
             bbox = CONFIG['custom']['bbox'][region]
-            dref = clean_up_ds(dref, variables=variables, bbox=bbox)
+            dref = subset_bbox(dref[[variables]], **bbox)
 
             dref_ref = dref.sel(time=ref_period).chunk({'time': -1})
             dref_props = compute_properties(dref_ref, dref_ref, ref_period, None).chunk({'lon': -1, 'lat': -1})
@@ -126,15 +151,15 @@ if __name__ == '__main__':
                 )
 
             dref = dref.chunk({d: CONFIG['custom']['chunks'][d] for d in dref.dims})
-            drefnl = convert_calendar(dref, "noleap")
-            dref360 = convert_calendar(dref, "360_day", align_on="year")
+            # drefnl = convert_calendar(dref, "noleap")
+            # dref360 = convert_calendar(dref, "360_day", align_on="year")
 
             encoding = {v: {'dtype': 'float32'} for v in variables}
 
             tasks = [
-                dref.to_zarr(rdir / f"ref_{region}_default.zarr", compute=False, encoding=encoding),
-                drefnl.to_zarr(rdir / f"ref_{region}_noleap.zarr", compute=False, encoding=encoding),
-                dref360.to_zarr(rdir / f"ref_{region}_360_day.zarr", compute=False, encoding=encoding),
+                dref.to_zarr(rdir / f"ref_{region}.zarr", compute=False, encoding=encoding),
+                # drefnl.to_zarr(rdir / f"ref_{region}_noleap.zarr", compute=False, encoding=encoding),
+                # dref360.to_zarr(rdir / f"ref_{region}_360_day.zarr", compute=False, encoding=encoding),
                 dref_props.to_zarr(rdir / f"ref_{region}_properties.zarr", compute=False)
             ]
             compute(tasks)
@@ -154,34 +179,44 @@ if __name__ == '__main__':
             )
             plt.close('all')
 
-    if we_should_do('regrid'):
+    if we_should_do('extract_regrid'):
         with (
             Client(n_workers=8, threads_per_worker=3, memory_limit="7GB", **daskkws),
             performance_report(dask_perf_file.with_name('perf_report_regrid.html')),
             measure_time(name='regrid', logger=logger)
         ):
-            cat = DataCatalog.from_csv(['catalog.csv'])
-            cat = cat.search(simulation_id=f"{simulation}_{scenario}")
-            if len(cat.keys()) == 2:
-                cat = cat.search(domain_id='NAM-22i')
-            sim_id, ds_in = cat.to_dataset_dict(
-                xarray_combine_by_coords_kwargs={'combine_attrs': 'override'}
-            ).popitem()
-            print()
+            crit = dict(zip(['driving_institution', 'driving_model', 'institution', 'source'], simulation.split('_')))
+            crit['experiment'] = scenario
+            scat = search_data_catalogs(
+                CONFIG['extraction']['data_catalogs'],
+                CONFIG['extraction']['variables'],
+                other_search_criteria=crit,
+                periods=[tgt_period.start, tgt_period.stop],
+                restrict_resolution='finest',
+                allow_conversion=False,
+                match_hist_and_fut=True,
+            )
+            if len(scat) > 1:
+                raise ValueError('Found too many datasets.')
+
+            sim_id, scat = scat.popitem()
+            ds_in = extract_dataset(scat, xr_open_kwargs={'drop_variables': ['time_bnds']}, xr_combine_kwargs={'data_vars': 'minimal'})['D']
+
             # For regridding we need chunks that along time only, spatial slices.
             # And to combine and write to zarr we need uniform chunks.
             # 40 evenly divided the number of elements in hist`, so that chunks are uniform (except the very last one)
             # But it's a bit small, so we will rechunk the combination to 160 which is a multiple of 40 and also a guess.
             # The thing is : in regridding the spatial size will blow up by a factor of 5
             # we need to choose chunks that will still be reasonable after regridding.
-            ds_in = clean_up_ds(ds_in.sel(time=tgt_period), variables=variables)
+            # ds_in = ds_in.sel(time=tgt_period)[[variables]]
 
-            ds_out = xr.open_zarr(rdir / f'ref_{region}_noleap.zarr')
+            ds_out = xr.open_zarr(rdir / f'ref_{region}.zarr')
+            ds_out.attrs['cat/domain'] = region
             encoding = {k: {'dtype': 'float32'} for k in variables}
 
-            out = regrid(ds_in, ds_out, locstream_out=CONFIG['custom']['stack_drop_nans'])
+            out = regrid(ds_in, CONFIG['regridding']['weights_dir'], ds_out, regridder_kwargs=dict(locstream_out=CONFIG['custom']['stack_drop_nans']))
             out = out.chunk(translate_time_chunk({'time': '4year'}, get_calendar(out), out.time.size))
-            to_zarr_skip_existing(out, wkdir / f"ds_regridded.zarr", mode, encoding=encoding, compute=True)
+            save_to_zarr(out, wkdir / f"ds_regridded.zarr", mode=mode, encoding=encoding, itervar=True)
 
     if we_should_do('rechunk'):
         with (
@@ -200,7 +235,7 @@ if __name__ == '__main__':
             rechunk(
                 wkdir / f"ds_regridded.zarr",
                 wkdir / f"ds_regchunked.zarr",
-                chunks=chunks,
+                chunks_over_var=chunks,
                 worker_mem="2GB"
             )
 
@@ -213,15 +248,14 @@ if __name__ == '__main__':
         ):
             dsim = xr.open_zarr(wkdir / 'ds_regchunked.zarr')
             simcal = get_calendar(dsim)
-            dref = xr.open_zarr(rdir / f"ref_{region}_{simcal}.zarr").sel(time=ref_period)
-
+            dref = convert_calendar(xr.open_zarr(rdir / f"ref_{region}.zarr").sel(time=ref_period), simcal)
             out = compute_properties(dsim, dref, ref_period, fut_period)
 
             out_path = Path(CONFIG['paths']['checkups'].format(
                 region=region, simulation=simulation, scenario=scenario, step='sim'
             ))
             out_path.parent.mkdir(exist_ok=True, parents=True)
-            to_zarr_skip_existing(out, out_path, mode, itervar=True)
+            save_to_zarr(out, out_path, mode=mode, itervar=True)
 
             logger.info('Sim properties computed, painting nan count and sending plot.')
             dsim_props = unstack_fill_nan(xr.open_zarr(out_path), coords=rdir / f'coords_{region}.nc')
@@ -242,22 +276,11 @@ if __name__ == '__main__':
     if we_should_do('train'):
         with Client(n_workers=9, threads_per_worker=3, memory_limit="7GB", **daskkws) as c:
             dhist = xr.open_zarr(wkdir / 'ds_regchunked.zarr').sel(time=ref_period)
-
-            simcal = get_calendar(dhist)
-            refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-            if simcal != refcal:
-                dhist = convert_calendar(dhist, refcal)
-
-            dref = xr.open_zarr(rdir / f"ref_{region}_{refcal}.zarr").sel(time=ref_period)
+            dhist = dhist.assign(dtr=dtr(tasmin=dhist.tasmin, tasmax=dhist.tasmax))
+            dref = xr.open_zarr(rdir / f"ref_{region}.zarr").sel(time=ref_period)
+            dref = dref.assign(dtr=dtr(tasmin=dref.tasmin, tasmax=dref.tasmax))
 
             for var, conf in CONFIG['biasadjust']['variables'].items():
-                if var == 'dtr':
-                    ref = dtr(tasmin=dref.tasmin, tasmax=dref.tasmax)
-                    hist = dtr(tasmin=dhist.tasmin, tasmax=dhist.tasmax)
-                else:
-                    ref = dref[var]
-                    hist = dhist[var]
-
                 outfile = wkdir / f"ds_{var}_training.zarr"
                 if outfile.is_dir() and mode == 'a':
                     logger.warning(f"{var} already trained.")
@@ -271,31 +294,21 @@ if __name__ == '__main__':
                     measure_time(name=f'train {var}', logger=logger)
                 ):
 
-                    trds = train_qm(ref, hist, **kwargs)
-                    trds.to_zarr(outfile)
+                    trds = train(dref, dhist, var=[var], **kwargs)
+                    save_to_zarr(trds, outfile)
 
     if we_should_do('adjust'):
 
         with Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws) as c:
             dsim = xr.open_zarr(wkdir / f"ds_regchunked.zarr").sel(time=tgt_period)
-
-            simcal = get_calendar(dsim)
-            refcal = minimum_calendar(simcal, CONFIG['custom']['maximal_calendar'])
-            if simcal != refcal:
-                dsim = convert_calendar(dsim, refcal)
-
+            dsim = dsim.assign(dtr=dtr(tasmin=dsim.tasmin, tasmax=dsim.tasmax))
             for var, conf in CONFIG['biasadjust']['variables'].items():
                 outfile = wkdir / f"ds_{var}_adjusted.zarr"
                 if outfile.is_dir() and mode == 'a':
                     logger.warning(f"{var} already adjusted.")
                     continue
 
-                if var == 'dtr':
-                    sim = dtr(tasmin=dsim.tasmin, tasmax=dsim.tasmax)
-                else:
-                    sim = dsim[var]
-
-                adjkwargs = conf.pop('adjust', {})
+                adjkwargs = conf.get('adjust', {})
                 trds = xr.open_zarr(wkdir / f"ds_{var}_training.zarr")
 
                 with (
@@ -303,9 +316,10 @@ if __name__ == '__main__':
                     measure_time(name=f'adjust {var}', logger=logger)
                 ):
 
-                    scen = adjust_qm(trds, sim, **adjkwargs)
-                    add_preprocessing_attr(scen, conf)
-                    scen.to_dataset().to_zarr(outfile)
+                    scen = adjust(
+                        trds, dsim, [tgt_period.start, tgt_period.stop], adjkwargs
+                    )
+                    save_to_zarr(scen, outfile)
 
     if we_should_do('cleanup'):
 
@@ -314,12 +328,6 @@ if __name__ == '__main__':
             performance_report(dask_perf_file.with_name(f'perf_report_cleanup.html')),
             measure_time(name=f'cleanup', logger=logger)
         ):
-            cat = DataCatalog.from_csv(['catalog.csv'])
-            cat = cat.search(simulation_id=f"{simulation}_{scenario}")
-            if len(cat.keys()) == 2:
-                cat = cat.search(domain_id='NAM-22i')
-            refattrs = xr.open_dataset(cat.df.iloc[0].path).attrs
-
             outs = {v: xr.open_zarr(wkdir / f"ds_{v}_adjusted.zarr")[v] for v in CONFIG['biasadjust']['variables'].keys()}
 
             if 'dtr' in outs and 'tasmax' in outs:
@@ -334,13 +342,13 @@ if __name__ == '__main__':
             for var, attrs in CONFIG['custom']['attrs'].items():
                 obj = ds if var == 'global' else ds[var]
                 for attrname, attrtmpl in attrs.items():
-                    obj.attrs[attrname] = attrtmpl.format(refattrs=refattrs, **fmtkws)
+                    obj.attrs[attrname] = attrtmpl.format(**fmtkws)
             for var in ds.data_vars.values():
                 for attr in list(var.attrs.keys()):
                     if attr not in CONFIG['custom']['final_attrs_names']:
                         del var.attrs[attr]
 
-            to_zarr_skip_existing(ds, wkdir / "ds_final.zarr", mode, compute=True)
+            save_to_zarr(ds, wkdir / "ds_final.zarr", mode=mode)
 
     if we_should_do('finalzarr'):
         with (
@@ -361,7 +369,7 @@ if __name__ == '__main__':
             rechunk(
                 wkdir / f"ds_final.zarr",
                 out,
-                chunks=chunks,
+                chunks_over_var=chunks,
                 worker_mem="2GB"
             )
 
@@ -375,7 +383,7 @@ if __name__ == '__main__':
             dscen = xr.open_zarr(CONFIG['paths']['output'].format(**fmtkws))
             scen_cal = get_calendar(dscen)
             dref = _maybe_unstack(
-                xr.open_zarr(rdir / f"ref_{region}_{scen_cal}.zarr").sel(time=ref_period),
+                convert_calendar(xr.open_zarr(rdir / f"ref_{region}.zarr").sel(time=ref_period), scen_cal),
                 rechunk={d: CONFIG['custom']['out_chunks'][d] for d in ['lat', 'lon']}
             )
 
@@ -384,9 +392,58 @@ if __name__ == '__main__':
             out_path = CONFIG['paths']['checkups'].format(
                 region=region, simulation=simulation, scenario=scenario, step='scen'
             )
-            to_zarr_skip_existing(out, out_path, mode, itervar=True)
+            save_to_zarr(out, out_path, mode=mode, itervar=True)
 
     if we_should_do('checkup'):
+        import matplotlib as mpl
+        import matplotlib.pyplot as plt
+        from cartopy import crs
+
+        def fig_compare_and_diff(sim, scen, op='difference', title=""):
+            cmbias = mpl.cm.BrBG.copy()
+            cmbias.set_bad('gray')
+            cmimpr = mpl.cm.RdBu.copy()
+            cmimpr.set_bad('gray')
+
+            fig = plt.figure(figsize=(15, 5))
+            gs = mpl.gridspec.GridSpec(6, 2, hspace=2)
+            axsm = plt.subplot(gs[3:, 0], projection=crs.PlateCarree())
+            axsc = plt.subplot(gs[3:, 1], projection=crs.PlateCarree())
+            axim = plt.subplot(gs[:3, 1], projection=crs.PlateCarree())
+
+            vmin = min(
+                min(sim.quantile(0.05), scen.quantile(0.05)),
+                -max(sim.quantile(0.95), scen.quantile(0.95))
+            )
+
+            ps = sim.plot(
+                ax=axsm, vmin=vmin, vmax=-vmin,
+                cmap=cmbias, add_colorbar=False, transform=crs.PlateCarree()
+            )
+            scen.plot(
+                ax=axsc, vmin=vmin, vmax=-vmin,
+                cmap=cmbias, add_colorbar=False, transform=crs.PlateCarree()
+            )
+            if op == 'distance':
+                diff = abs(sim - scen)
+            elif op == 'improvement':
+                diff = abs(sim) - abs(scen)
+            else:  # op == 'diff':
+                diff = sim - scen
+            pc = diff.plot(
+                ax=axim, robust=True, cmap=cmimpr, center=0,
+                add_colorbar=False, transform=crs.PlateCarree()
+            )
+
+            fig.suptitle(title, fontsize='x-large')
+            axsm.set_title(sim.name.replace('_', ' ').capitalize())
+            axsc.set_title(scen.name.replace('_', ' ').capitalize())
+            axim.set_title(op.capitalize())
+            fig.tight_layout()
+            fig.colorbar(ps, cax=plt.subplot(gs[1, 0]), shrink=0.5, label=sim.attrs.get('long_name', sim.name), orientation='horizontal')
+            fig.colorbar(pc, cax=plt.subplot(gs[0, 0]), shrink=0.5, label=op.capitalize(), orientation='horizontal')
+            return fig
+
         with (
             Client(n_workers=6, threads_per_worker=3, memory_limit="10GB", **daskkws),
             performance_report(dask_perf_file.with_name(f'perf_report_checkup.html')),
@@ -419,10 +476,10 @@ if __name__ == '__main__':
             paths.append(fig_dir / 'Extremes_pr_scen_hist-fut.png')
 
             for var in ['pr_wet_freq_q99_hist', 'tx_mean_rmse', 'tn_mean_rmse', 'prcptot_rmse']:
-                fig_bias_compare_and_diff(
-                    ref[var], sim[var], scen[var],
-                ).savefig(fig_dir / f'{var}_bias_compare.png')
-                paths.append(fig_dir / f'{var}_bias_compare.png')
+                fig_compare_and_diff(
+                    sim[var].rename('sim'), scen[var].rename('scen'), title=f'Comparing {var}'
+                ).savefig(fig_dir / f'{var}_compare.png')
+                paths.append(fig_dir / f'{var}_compare.png')
 
             send_mail(
                 subject=f"{simulation}_{scenario}/{region} - Succès",

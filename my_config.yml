@@ -1,10 +1,14 @@
 dask:
     client:
         dashboard_address: 8786
-        # silence_logs: 50
+        silence_logs: 50
+        n_workers: 1
+        threads_per_worker: 12
+        memory_limit: 32GB
     array.slicing.split_large_chunks: False
-    # num_workers: 16
-    # scheduler: processes
+    local:
+        num_workers: 8
+        scheduler: threads
 
 logging:
     formatters:
@@ -21,8 +25,16 @@ logging:
             level: INFO
             propagate: False
             handlers: [console]
+        xscen:
+            level: INFO
+            propagate: False
+            handlers: [console]
+        xscen.io:
+            level: DEBUG
+        xscen.indicators:
+            level: ERROR
 
-utils:
+scr_utils:
     measure_time:
         cpu: True
     send_mail:
@@ -31,6 +43,12 @@ utils:
         msg_ok: Toutes les étapes demandées ont été complétées.
         msg_err: Une erreur est survenue durant le traitement.
         on_error_only: True
+
+extraction:
+    variables:
+        tasmax: D
+        tasmin: D
+        pr: D
 
 custom:
     variables: ['tasmax', 'tasmin', 'pr']
@@ -108,14 +126,25 @@ custom:
             long_name: Mean daily precipitation flux
             cell_methods: "time: mean within days"
 biasadjust:
+    train:
+        reference_period:
+            - 1981
+            - 2010
+        maximal_calendar: noleap
+    adjust:
+        target_period:
+            - 1951
+            - 2100
+        bias_adjust_institution: Ouranos
+        bias_adjust_project: ESPO-R5
     variables:
         dtr:
             method: DetrendedQuantileMapping
             group:
                 group: time.dayofyear
                 window: 31
-            kind: "*"
-            train:
+            xclim_train_args:
+                kind: "*"
                 nquantiles: 50
             adjust:
                 detrend:
@@ -131,8 +160,8 @@ biasadjust:
             group:
                 group: time.dayofyear
                 window: 31
-            kind: "+"
-            train:
+            xclim_train_args:
+                kind: "+"
                 nquantiles: 50
             adjust:
                 detrend:
@@ -148,12 +177,12 @@ biasadjust:
             group:
                 group: time.dayofyear
                 window: 31
-            kind: "*"
             adapt_freq:
                 thresh: 1 mm d-1
             jitter_under:
                 thresh: 0.01 mm d-1
-            train:
+            xclim_train_args:
+                kind: "*"
                 nquantiles: 50
             adjust:
                 detrend:
@@ -168,3 +197,7 @@ regridding:
     regrid:
         method: bilinear
         unmapped_to_nan: True
+
+indicators:
+    work_on_local_copy: True
+    filename_template: "{cat/driving_institution}_{cat/driving_model}_{cat/institution}_{cat/source}_{cat/experiment}_{cat/xrfreq}_1950-2100.zarr"
