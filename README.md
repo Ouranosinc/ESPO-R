@@ -161,7 +161,7 @@ c)
 
 
 ### Methodology
-The temperature and precipitation data from the simulations in table 2 were first extracted over an area corresponding to the smallest common domain of all simulations in a Plate Carrée coordinate system.
+The temperature and precipitation data from the simulations in table 2 were first extracted over an area corresponding to the largest common domain of all simulations in a Plate Carrée coordinate system (see above).
 Then using the [ESMF software](https://earthsystemmodeling.org/regrid/) (DeLuca et al., 2012), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface (Zhuang et al., 2021), all the extracted simulation data is interpolated bilinearly to the ERA5-Land grid.
 
 The ESPO-R5 v.1.0 bias adjustment procedure then uses [xclim](https://xclim.readthedocs.io/en/stable/sdba.html) algorithms to adjust simulation bias following a quantile mapping procedure.
