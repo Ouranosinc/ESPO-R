@@ -13,7 +13,6 @@ here) produced from bias-adjusted regional climate simulations, and 2) ESPO-G pr
 following the same methodology, but from global simulations available via the 
 CMIP program.
 
-
 ## Data processing tools
 The production and regular update of ESPO-R/G operational datasets represents a challenge
 in terms of computational resources. Ouranos has invested a great deal of effort in the
@@ -22,43 +21,81 @@ package](https://xclim.readthedocs.io/en/stable/) (Logan et al., 2021).  Built u
 dask, xclim benefits from simple to use parallelization and distributed computing tools 
 and can be easily deployed on High Performance Computing (HPC) environments.
 
+This repository contains the code used to generate and analyze the ESPO-R datasets. In
+addition to xclim and other freely available python libraries, it uses [xscen](https://github.com/Ouranosinc/xscen),
+a tool also developed at Ouranos to build climate data processing workflows. This tool
+as the particularity of relying on data catalogs as handled by [intake-esm](https://intake-esm.readthedocs.io/en/latest/index.html)
+as well as on YAML configuration files with a simple but specific structure. The catalog
+files and all paths needed by the configuration are missing from this repository, since
+they are specific to the data architecture of the computed running the code. To reproduce
+ESPO-R, one will need:
+
+- `CORDEX.json` and `CORDEX.csv` :An intake-esm catalog, compatible with xscen, listing the daily CORDEX datasets to use as inputs.
+- `project.json` and `project.csv`: An intake-esm catalog, compatible with xscen, listing the datasets created by this code.
+- `paths.yml`: A yaml file with the paths needed by the workflows. `template_paths.yml` shows an example of such a file, one only needs to replace the placeholders.
 
 ## ESPO-R5 v1.0
 ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations, with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM. The simulation ensemble covers the period 1951-2100 at the daily frequency. It includes the variables `tasmin`, `tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
+CORDEX and MRCC5 data was first resampled to a daily timestep before entering the ESPO-R5 workflow.
 
-| **Driving: institution** | **Driving : model** | **Driving : member id** | **Institution** | **Model** | **Experiment id** | **Resolution** | **CORDEX** |
-|--------------------------|---------------------|-------------------------|-----------------|-----------|-------------------|----------------|------------|
-| CCCma                    | CanESM2             | r1i1p1                  | CCCma           | CanRCM4   | rcp85             | 22i            | X          |
-| CCCma                    | CanESM2             | r1i1p1                  | CCCma           | CanRCM4   | rcp45             | 22i            | X          |
-| ICHEC                    | EC-EARTH            | r3i1p1                  | DMI             | HIRHAM5   | rcp45             | 44i            | X          |
-| ICHEC                    | EC-EARTH            | r3i1p1                  | DMI             | HIRHAM5   | rcp85             | 44i            | X          |
-| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | NCAR            | RegCM4    | rcp85             | 22i            | X          |
-| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i            | X          |
-| MOHC                     | HadGEM2-ES          | r1i1p1                  | NCAR            | RegCM4    | rcp85             | 22i            | X          |
-| MOHC                     | HadGEM2-ES          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i            | X          |
-| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | NCAR            | RegCM4    | rcp85             | 22i            | X          |
-| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i            | X          |
-| CCCma                    | CanESM2             | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
-| CCCma                    | CanESM2             |                         | Ouranos         | CRCM5     | rcp45             |                |            |
-| CNRM-CERFACS             | CNRM-CM5            | r1i1p1                  | Ouranos         | CRCM5     | rcp45             | 22i            | X          |
-| CNRM-CERFACS             | CNRM-CM5            | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
-| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
-| NOAA-GFDL                | GFDL-ESM2M          |                         | Ouranos         | CRCM5     | rcp45             |                |            |
-| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i            | X          |
-| MPI-M                    | MPI-ESM-LR          |                         | Ouranos         | CRCM5     | rcp45             |                |            |
-| CCCma                    | CanESM2             | r1i1p1                  | SMHI            | RCA4      | rcp45             | 44i            | X          |
-| CCCma                    | CanESM2             | r1i1p1                  | SMHI            | RCA4      | rcp85             | 44i            | X          |
-| ICHEC                    | EC-EARTH            | r12i1p1                 | SMHI            | RCA4      | rcp45             | 44i            | X          |
-| ICHEC                    | EC-EARTH            | r12i1p1                 | SMHI            | RCA4      | rcp85             | 44i            | X          |
-| CCCma                    | CanESM2             | r1i1p1                  | UQAM            | CRCM5     | rcp45             | 44i            | X          |
-| CCCma                    | CanESM2             | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i            | X          |
-| UQAM                     | GEMatm-Can-ESMsea   |                         | UQAM            | CRCM5     | rcp85             | 22i            | X          |
-| UQAM                     | GEMatm-MPI-ESMsea   |                         | UQAM            | CRCM5     | rcp85             | 22i            | X          |
-| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i            | X          |
-| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | UQAM            | CRCM5     | rcp45             | 22i            | X          |
-| MPI-M                    | MPI-ESM-MR          | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i            |            |
+| **Driving: institution** | **Driving : model** | **Driving : member id** | **Institution** | **Model** | **Experiment id** | **Initial Resolution** | **CORDEX** | **Calendar converted** |
+|--------------------------|---------------------|-------------------------|-----------------|-----------|-------------------|------------------------|------------|------------------------|
+| CCCma                    | CanESM2             | r1i1p1                  | CCCma           | CanRCM4   | rcp45             | 22i                    | X          |                        |
+| CCCma                    | CanESM2             | r1i1p1                  | CCCma           | CanRCM4   | rcp85             | 22i                    | X          |                        |
+| ICHEC                    | EC-EARTH            | r3i1p1                  | DMI             | HIRHAM5   | rcp45             | 44i                    | X          | X                      |
+| ICHEC                    | EC-EARTH            | r3i1p1                  | DMI             | HIRHAM5   | rcp85             | 44i                    | X          | X                      |
+| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | ISU             | RegCM4    | rcp85             | 22i                    | X          |                        |
+| MOHC                     | HadGEM2-ES          | r1i1p1                  | ISU             | RegCM4    | rcp85             | 22i                    | X          | 360_day                |
+| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i                    | X          | x                      |
+| MOHC                     | HadGEM2-ES          | r1i1p1                  | NCAR            | WRF       | rcp85             | 22i                    | X          | X                      |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | NCAR            | RegCM4    | rcp85             | 22i                    | X          |                        |
+| CCCma                    | CanESM2             | r1i1p1                  | Ouranos         | CRCM5     | rcp45             | 22i                    | X          |                        |
+| CCCma                    | CanESM2             | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i                    | X          |                        |
+| CNRM-CERFACS             | CNRM-CM5            | r1i1p1                  | Ouranos         | CRCM5     | rcp45             | 22                     |            | X                      |
+| CNRM-CERFACS             | CNRM-CM5            | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i                    | X          | X                      |
+| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | Ouranos         | CRCM5     | rcp45             | 22i                    | X          |                        |
+| NOAA-GFDL                | GFDL-ESM2M          | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i                    | X          |                        |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | Ouranos         | CRCM5     | rcp45             | 22                     |            | X                      |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | Ouranos         | CRCM5     | rcp85             | 22i                    | X          | X                      |
+| CCCma                    | CanESM2             | r1i1p1                  | SMHI            | RCA4      | rcp45             | 44i                    | X          |                        |
+| CCCma                    | CanESM2             | r1i1p1                  | SMHI            | RCA4      | rcp85             | 44i                    | X          |                        |
+| ICHEC                    | EC-EARTH            | r12i1p1                 | SMHI            | RCA4      | rcp45             | 44i                    | X          | X                      |
+| ICHEC                    | EC-EARTH            | r12i1p1                 | SMHI            | RCA4      | rcp85             | 44i                    | X          | X                      |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | UA              | WRF       | rcp85             | 22i                    | X          |                        |
+| CCCma                    | CanESM2             | r1i1p1                  | UQAM            | CRCM5     | rcp45             | 44i                    | X          |                        |
+| CCCma                    | CanESM2             | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i                    | X          |                        |
+| UQAM                     | GEMatm-Can-ESMsea   | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i                    | X          |                        |
+| UQAM                     | GEMatm-MPI-ESMsea   | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i                    | X          | X                      |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | UQAM            | CRCM5     | rcp45             | 44i                    | X          | X                      |
+| MPI-M                    | MPI-ESM-LR          | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i                    | X          | X                      |
+| MPI-M                    | MPI-ESM-MR          | r1i1p1                  | UQAM            | CRCM5     | rcp85             | 22i                    | X          | X                      |
 
 
+### Spatial coverage
+The dataset has a resolution of 0.1° over a domain corresponding to the (almost) largest
+common area covered by all simulations when using this resolution in a Plate Carrée
+coordinate system: from 147.5°W to 52.7°W and from 19.3°N to 74.2°N. In order to have
+the ESPO-R domain fully cover a few islands at the northern boundary of the domain, we had
+to extend it slightly further than the common area. As such, the region from 71.2°N to 74.2°N
+is fully covered by only 15 members. Data is only available on land, as the reference,
+ERA5-Land is only defined there.
+
+### Temporal coverage
+Because the bias-adjustment method requires and equal calendar (no leap days), all members
+using a standard calendar were converted to the noleap one by dropping any values for February 29th.
+MOHC_HadGEM2-ES_NCAR_WRF_rcp85 is only member simulated with a 360_day calendar and it was kept as is.
+
+The bias-adjustment was calibrated over the 1981-2010 period and applied to the full 1951-2100 period.
+However, some CORDEX members do not fully cover that period. At least one variable is missing on the following dates:
+- All members simulated with CRCM5: 2100-12-31
+- MOHC_HadGEM2-ES_NCAR_WRF_rcp85:  1991-12-31, 2055-12-31 and 2099-12-01 to 2100-12-31
+- MOHC_HadGEM2-ES_ISU_RegCM4_rcp85: 2099-12-01 to 2100-12-30 (uses the 360_day calendar)
+- MPI-M_MPI-ESM-LR_NCAR_RegCM4_rcp85: 2100-12-31
+- MPI-M_MPI-ESM-LR_UA_WRF_rcp85: 1991-12-31, 2055-12-31 and 2100-12-01 to 2100-12-31
+- NOAA-GFDL_GFDL-ESM2M_ISU_RegCM4_rcp85: from 2100-01-01 to 2100-12-31
+- NOAA-GFDL_GFDL-ESM2M_NCAR_WRF_rcp85: 1991-12-31, 2005-12-01 to 2005-12-31, 2006-12-31, 2055-12-31 and 2100-01-01 to 2100-12-31
+
+None of these issues are caused by the ESPO-R5 workflow, but rather from missing data in the sources, see https://na-cordex.org/missing-data.html.
 
 ### Reference data
 ESPO-R5 v1.0 uses the [ERA5-Land reanalysis](https://confluence.ecmwf.int/display/CKB/ERA5-Land)
@@ -66,6 +103,10 @@ ESPO-R5 v1.0 uses the [ERA5-Land reanalysis](https://confluence.ecmwf.int/displa
 of the land component of the ERA5 climate reanalysis, forced by meteorological fields from 
 ERA5 and cover the period 1950 to the 2-3 months before the present. ERA5-Land benefits from numerous 
 improvements, making it more accurate for all types of land applications than the original ERA5. In particular, ERA5-Land runs at enhanced resolution (9 km vs 31 km in ERA5).
+
+Depending on the simulation to adjust, the ERA5-land data was converted to a "noleap" or to a "360_day" calendar.
+In the first case, all Febrary 29th are droppped. In the second one, 5 or 6 days per year are dropped, chosen to be
+uniformly distributed as detailed in [xclim's documentation](https://xclim.readthedocs.io/en/stable/api.html?highlight=convert_calendar#xclim.core.calendar.convert_calendar).
 
 ERA5-land was retained after an evaluation of multiple candidate datasets (Table 1) against observed data for the 
 variables of daily maximum and minimum temperatures, and daily total precipitation for the period 1981-2010.  
@@ -100,7 +141,6 @@ as well as a temporal coverage up to the present (Table 1).
 | NRCAN Gridded v2017 | 1950       | 2017        | Canada (land only)     | ~10 Km             | 1 day               | McKenney et al. 2011                    |
 
 
-
 ![img.png](images/img.png)
 
 **Figure 1.** Summary of assessment of mean annual cycle (1981-2010) between candidate datasets and adjusted station data for daily maximum temperature (left column), daily minimum temperature (middle column) and total precipitation (right column). The figures represent the distribution of mean square (top) and correlation (bottom) error values between stations and gridded data.
@@ -124,11 +164,8 @@ c)
 **Figure 3.** Summary of bias by percentile (1981-2010) between candidate datasets for daily values of maximum temperatures (a), minimum temperatures (b) and total precipitation (c). The comparison was made for the seasons of winter (DJF: 1st column), spring (MAM: 2nd column), summer (JJA: 3rd column) and autumn (SON: 4th column). The results for the compared percentiles (5, 25, 50, 75, and 95) are organized by row in ascending order, starting from the top.
 
 
-### Regional climate simulations
-TODO add description of vars and table of simulations
-
 ### Methodology
-The temperature and precipitation data from the simulations in table 2 were first extracted over an area covering North America and, if necessary, converted into daily values.
+The temperature and precipitation data from the simulations in table 2 were first extracted over an area corresponding to the largest common domain of all simulations in a Plate Carrée coordinate system (see above).
 Then using the [ESMF software](https://earthsystemmodeling.org/regrid/) (DeLuca et al., 2012), accessed through its python [xESMF](https://xesmf.readthedocs.io/en/latest/) interface (Zhuang et al., 2021), all the extracted simulation data is interpolated bilinearly to the ERA5-Land grid.
 
 The ESPO-R5 v.1.0 bias adjustment procedure then uses [xclim](https://xclim.readthedocs.io/en/stable/sdba.html) algorithms to adjust simulation bias following a quantile mapping procedure.

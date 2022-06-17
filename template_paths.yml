@@ -1,0 +1,31 @@
+dask:
+  client:
+    local_directory: TEMP_DIR
+  local:
+    temporary_directory: TEMP_DIR
+
+paths:
+  workdir: WORKING_DIR/TEMP
+  refdir: WORKING_DIR/REFS
+  reference: WORKIND_DIR/daily_ERA5-Land_NAM_1981-2020.zarr
+  checkfigs: WORKING_DIR/FINAL/{region}/checkup/
+  checkups: WORKING_DIR/FINAL/{region}/checkup/{simulation}_{scenario}_{step}.zarr
+  reports: WORKING_DIR/FINAL/{region}/perfs/{simulation}_{scenario}/
+  output: WORKING_DIR/FINAL/{region}/ZARR/day_{simulation}_{scenario}_1950-2100.zarr
+  concat_output: OUTPUT_DIR/day_{simulation}_{scenario}_1950-2100.zarr
+
+extraction:
+  data_catalogs:
+    - ../CORDEX.json
+
+regridding:
+  weights_dir: WORKING_DIR/REFS/regridding/
+
+io:
+  rechunk:
+    temp_store: TEMP_DIR/rechunk_temp.zarr
+
+indicators:
+  outdir: OUTPUT_DIR
+  tempdir: WORKING_DIR/DAILYTEMP/
+  final_output: OUTPUT_DIR/indices/
