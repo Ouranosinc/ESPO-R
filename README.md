@@ -104,6 +104,10 @@ of the land component of the ERA5 climate reanalysis, forced by meteorological f
 ERA5 and cover the period 1950 to the 2-3 months before the present. ERA5-Land benefits from numerous 
 improvements, making it more accurate for all types of land applications than the original ERA5. In particular, ERA5-Land runs at enhanced resolution (9 km vs 31 km in ERA5).
 
+Depending on the simulation to adjust, the ERA5-land data was converted to a "noleap" or to a "360_day" calendar.
+In the first case, all Febrary 29th are droppped. In the second one, 5 or 6 days per year are dropped, chosen to be
+uniformly distributed as detailed in [xclim's documentation](https://xclim.readthedocs.io/en/stable/api.html?highlight=convert_calendar#xclim.core.calendar.convert_calendar).
+
 ERA5-land was retained after an evaluation of multiple candidate datasets (Table 1) against observed data for the 
 variables of daily maximum and minimum temperatures, and daily total precipitation for the period 1981-2010.  
 Observed data for the comparison consisted of Third Generation of Homogenized Daily Temperature for Canada (Vincent et al. 2020), 
