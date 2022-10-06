@@ -182,6 +182,20 @@ To remedy this problem, all simulations as well as the reference product are con
 A more detailed explanation of the adjustment process is given in [the documentation](Documentation/adjustment.pdf).
 
 
+### Performance
+Bias-adjustment of climate simulations is a quest with many traps.
+In order to assess the improvements and deteriorations that the process brought to the simulations we emulated the VALUE validation framework (Maraun et al., 2015).
+While that project aimed to "to validate and compare downscaling methods", we recycled its idea of statistical "properties" and "measures" to measure bias between the simulations, scenarios and the reference.
+
+A detailed analysis is given in [the documentation](Documentation/performance.pdf).
+The general conclusions we can give about the quality of ESPO-R5 are:
+
+ - The marginal properties of the simulations (mean, quantiles) are very well adjusted, by construction of the Quantile Mapping algorithm.
+ - The climate change signal is also conserved from the simulations by construction of the algorithm.
+ - A side effect of adjusting the distributions explicitly is the improvement of the inter-variable correlation and some spatial diagnostics (first EOF for tasmax), even though the bias correction algorithm does not aim to adjust these aspects.
+ - Because tasmin is not directly adjusted, but rather computed from the adjusted tasmax and dtr, it seems that our diagnostics show weaker improvements, compared to tasmax.
+
+
 ## References
 Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietroniro, A., and Cannon, A. (2020): High-resolution meteorological forcing data for hydrological modelling and climate change impact analysis in the Mackenzie River Basin, Earth Syst. Sci. Data, 12, 629–645, https://doi.org/10.5194/essd-12-629-2020.
 
@@ -196,6 +210,8 @@ Hersbach H., Bell B., Berrisford P., Biavati G., Horányi A., Muñoz Sabater J.,
 Kanamitsu, M., et al , (2002): NCEP-DOE AMIP-II Reanalysis (R-2), Bull. Amer. Meteor. Soc., 83, 1631-1643.
 
 Logan, T., Bourgault, P., Smith, T. J., Huard, D., Biner, S., Labonté, M.-P., Rondeau-Genesse, G., Fyke, J., Aoun, A., Roy, P., Ehbrecht, C., Caron, D., Stephens, A., Whelan, C., Low, J.-F., Keel, T., Lavoie, J., Tanguy, M., Barnes, C., … Quinn, J. (2022). Ouranosinc/xclim (0.35.0) [Python]. Zenodo. https://doi.org/10.5281/zenodo.6407112
+
+Maraun, D., Widmann, M., Gutiérrez,  J.M., Kotlarski, S., Chandler, R. E., Hertig, E., Wibig, J., Huth, R., Wilcke, R. A. I. (2015). VALUE: A Framework to Validate Downscaling Approaches for Climate Change Studies. Earth’s Future 3, 1, 1‑14. https://doi.org/10.1002/2014EF000259.
 
 McKenney, D.W., M.F. Hutchinson, P. Papadol, K. Lawrence, J. Pedlar, K. Campbell, E. Milewska, R.F. Hopkinson, D. Price, and T. Owen, 2011. Customized Spatial Climate Models for North America. Bull. Amer. Meteor. Soc., 92, 1611-1622, https://doi.org/10.1175/2011BAMS3132.1
 

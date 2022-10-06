@@ -2,9 +2,9 @@ dask:
     client:
         dashboard_address: 8786
         silence_logs: 50
-        n_workers: 1
-        threads_per_worker: 12
-        memory_limit: 32GB
+        n_workers: 2
+        threads_per_worker: 6
+        memory_limit: 16GB
     array.slicing.split_large_chunks: False
     local:
         num_workers: 8
@@ -26,13 +26,16 @@ logging:
             propagate: False
             handlers: [console]
         xscen:
-            level: INFO
+            level: DEBUG
             propagate: False
             handlers: [console]
         xscen.io:
             level: DEBUG
         xscen.indicators:
             level: ERROR
+    root:
+        level: INFO
+        handlers: [console]
 
 scr_utils:
     measure_time:
@@ -49,6 +52,11 @@ extraction:
         tasmax: D
         tasmin: D
         pr: D
+
+project:
+    id: ESPO-R5
+    title: Data generated for ESPO-R5
+    version: v1.0
 
 custom:
     variables: ['tasmax', 'tasmin', 'pr']
@@ -199,5 +207,6 @@ regridding:
         unmapped_to_nan: True
 
 indicators:
-    work_on_local_copy: True
-    filename_template: "{cat/driving_institution}_{cat/driving_model}_{cat/institution}_{cat/source}_{cat/experiment}_{cat/xrfreq}_1950-2100.zarr"
+    work_on_local_copy: False
+    filename_template: "{driving_institution}_{driving_model}_{institution}_{source}_{experiment}_{xrfreq}_1950-2100.zarr"
+    ref_template: "ERA5-land_obs_{xrfreq}_1950-2100.zarr"

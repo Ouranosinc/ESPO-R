@@ -7,62 +7,92 @@ doc: |
 indicators:
   tg_mean_annual:
     base: tg_mean
+    cf_attrs:
+      var_name: tg_mean
     parameters:
       freq: YS
   tg_mean_seasonal:
     base: tg_mean
+    cf_attrs:
+      var_name: tg_mean
     parameters:
       freq: QS-DEC
   tx_mean_annual:
     base: tx_mean
+    cf_attrs:
+      var_name: tx_mean
     parameters:
       freq: YS
   tx_mean_seasonal:
     base: tx_mean
+    cf_attrs:
+      var_name: tx_mean
     parameters:
       freq: QS-DEC
   tn_mean_annual:
     base: tn_mean
+    cf_attrs:
+      var_name: tn_mean
     parameters:
       freq: YS
   tn_mean_seasonal:
     base: tn_mean
+    cf_attrs:
+      var_name: tn_mean
     parameters:
       freq: QS-DEC
   prcptot_annual:
     base: prcptot
+    cf_attrs:
+      var_name: prcptot
     parameters:
       freq: YS
   prcptot_seasonal:
     base: prcptot
+    cf_attrs:
+      var_name: prcptot
     parameters:
       freq: QS-DEC
   liquidprcptot_annual:
     base: liquidprcptot
+    cf_attrs:
+      var_name: liquidprcptot
     parameters:
       freq: YS
   liquidprcptot_seasonal:
     base: liquidprcptot
+    cf_attrs:
+      var_name: liquidprcptot
     parameters:
       freq: QS-DEC
   solidprcptot_annual:
     base: solidprcptot
+    cf_attrs:
+      var_name: solidprcptot
     parameters:
       freq: YS
   solidprcptot_seasonal:
     base: solidprcptot
+    cf_attrs:
+      var_name: solidprcptot
     parameters:
       freq: QS-DEC
   dlyfrzthw_annual:
     base: dlyfrzthw
+    cf_attrs:
+      var_name: dlyfrzthw
     parameters:
       freq: YS
   dlyfrzthw_seasonal:
     base: dlyfrzthw
+    cf_attrs:
+      var_name: dlyfrzthw
     parameters:
       freq: QS-DEC
   growing_degree_days_gt_4_annual:
     base: growing_degree_days
+    cf_attrs:
+      var_name: growing_degree_days_gt_4
     parameters:
       thresh: 4 degC
       freq: YS
