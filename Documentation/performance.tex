@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 \usepackage{hyperref}
 \usepackage[margin=2cm]{geometry}
+\usepackage{graphicx}
 
 \begin{document}
 \title{Performance of ESPO-R5 v1.0}
@@ -47,7 +48,13 @@ Detrended Quantile Mapping will adjust most properties marked as "marginal" by c
 The dry spell frequency has a similar behaviour where only members with large initial biases show strong IMP. This property is also somewhat adjusted by construction during the pre-processing of precipitation data, at least for members with too many dry days, when compared to the reference. The process explained in the "Adjustment" document is mostly meant to ensure valid quantile mappings, but it does have a small effect on the final scenarios. There are still some members where the frequency of dry days is up to around 6\% greater in the scenarios then in the reference, especially over lakes. The bias is also quite consistently positive for all members and regions.
 
 \section{Temporal aspects}
-As the bias adjustment acts separately on each day of the year and, as we've seen, the scenario distribution matches well the reference one, it would be expected that the annual cycle amplitude is well adjusted. COMMENT ON THE ANNUAL CYCLE TO BE WRITTEN.
+As the bias adjustment acts separately on each day of the year and, as we've seen, the scenario distribution matches well the reference one, it would be expected that the annual cycle amplitude is well adjusted. And indeed, for both temperatures, the improvement is major for all members, most showing IMP values over 90 \%. Scores are slightly weaker for precipitation, but it is here important to note than in some regions precipitation doesn't have an annual cycle as strong and and consistent as temperature. And still, IMP values are over 75 \% for two-thids of the members. Again, there a strong correlation between the improvement amount and the initial bias. Some members had really bad annual cycle amplitude patterns before the adjustment, which makes their high IMP scores almost trivial. So much so that it becomes less a measure of the performance of the bias adjustment than a measure of the bias between the simulation and the reference, see figure~\ref{fig:acapr} for example.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{../images/aca_pr_diags.png}
+\caption{Example of diagnostic maps showing a large bias betwen the simulation and the reference as well as a large improvements in the scenario.}\label{fig:acapr}
+\end{figure}
+
 
 Unsurprisingly, the lag-1 autocorrelation property doesn't seem to be significantly improved by the bias-adjustment. Generally, the lag-1 autocorrelation structure from the simulations is almost identical in the scenarios. Indeed, the algorithm does not adjust this aspect explicitly, but it may be interesting for futher versions of the ESPO datasets to address this issue.
 
