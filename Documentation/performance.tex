@@ -14,7 +14,7 @@ The assessment of the bias-adjustment performance of ESPO-R5 was inspired by the
 
 \begin{table}[!ht]
     \centering
-    \caption{Properties used in the performance assessment of ESPO-R5v1.0. All properties are compared with the simple "bias" measure, except the relative amplitude of the annual cycle. All properties were computed on the full 30 years of daily data, except the means which were computed seperately for each month.}
+    \caption{Properties used in the performance assessment of ESPO-R5v1.0. All properties are compared with the simple "bias" measure, except the relative amplitude of the annual cycle (see footnote). All properties were computed on the full 30 years of daily data, except the means which were computed seperately for each month.}
     \begin{tabular}{l|c|c|c|l}
     \hline
     Property                               & Short name & Variables          & Aspect   & Source \\ \hline
@@ -34,16 +34,22 @@ The assessment of the bias-adjustment performance of ESPO-R5 was inspired by the
 
 \end{table}
 
-The \emph{properties} were computed on the calibration period (1981-2010) on the raw simulations, on the bias-adjusted scenarios and on the reference (ERA5-Land). The results for the raw simulations were compared to those for the reference using a \emph{measure} appropriate for that each property.\footnote{All properties in \ref{tab:props} are compared using a simple bias measure ($P_{sim} - P_{ref}$) except for the \emph{relative amplitude of the annual cycle}, which uses the ratio measure ($P_{sim} / P_{ref}$)}. This way, for each member of the ensemble, one can visualize a given property and compare the measures to assess the improvement brought by the bias adjustment. Because of performance issues, the properties and measures were not computed on the full domain of ESPO-R, but rather on three smaller regions chosen to cover different climate types.
+The \emph{properties} were computed on the calibration period (1981-2010) on the raw simulations, on the bias-adjusted scenarios and on the reference (ERA5-Land). The results for the raw simulations were compared to those for the reference using a \emph{measure} appropriate for that each property.\footnote{All properties in \ref{tab:props} are compared using a simple bias measure ($P_{sim} - P_{ref}$) except for the \emph{relative amplitude of the annual cycle}, which uses the ratio measure ($P_{sim} / P_{ref}$)}. This way, for each member of the ensemble, one can visualize a given property and compare the measures to assess the improvement brought by the bias adjustment. Because of performance issues, the properties and measures were not computed on the full domain of ESPO-R, but rather on three smaller regions chosen to cover different climate types. These are shown in figure~\ref{fig:map}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\textwidth]{../images/regions_domain_map.pdf}
+    \caption{Map showing the domain of ESPO-R5v1.0 and the three diagnostics regions used in this study. All three regions have the same number of points, their size varies on this figure because of its rotated pole projection.}\label{fig:map}
+\end{figure}
 
 To complement this useful but quite exhaustive collection of maps, the proportion of improved gridpoints (we'll call this indicator IMP) was found for each property. A gridpoint is said to have been improved if the bias (ratio) between the scenario and the reference is smaller (closer to 1) than the one between the raw simulation and the reference. By taking the mean accross all members of the ensemble, this allowed to have an idea of which properties were improved by the bias adjustment (those with IMP close to 100 \%), which were not impacted (IMP around 50\%) and which were worsened (IMP smaller than 50 \%). Fortunately, we do not have any properties of the latter case in this study.
 
-As always when asserting the quality of a bias-adjustment, one must not forget that terms like "improvement" or "performance" refer to the change in comparison with the reference which is taken as the Truth in this context. Thus, the validity of bias-adjusted is limited by that reference's validity. A succint analysis of ERA5-Land was done in the README at the root of this repository and it is there explained why we chose to use it as a reference, even though it has issues when compared against the observations of the AHCCD dataset (here again taken as a Truth in that context).
+As always when asserting the quality of a bias-adjustment, one must not forget that terms like "improvement" or "performance" refer to the change in comparison with the reference which is taken as the Truth in this context. Thus, the validity of bias-adjusted is limited by that reference's validity. A succint analysis of ERA5-Land was done in the README at the root of this repository and it is there explained why we chose to use it as a reference.
 
 This whole analysis not only serves as an assessment of the performance of ESPO-R5v1.0, but also as a benchmark for the next iterations of the ESPO datasets. Here, we aim to test our performance evaluation tools and tune the list of properties to evaluate.
 
 \section{Marginal aspects}\label{sec:marg}
-Detrended Quantile Mapping will adjust most properties marked as "marginal" by construction. Our algorithm divides the distribution of values for each day of the year into 50 bins and thus the percentile properties should look almost perfectly adjusted. Indeed, all members show over 90\% of improved grid points for the percentiles properties of pr and tasmax. Usually, the non-improved grid points are those where the simulation was already comparing well with the reference and indicate that there is noise (variability) in the scenario, more than anything else. This can also be seen when comparing results for members where the initial resolution was 0.44° with those for the 0.22° sources: the former systematically have stronger IMP scores than the latter. However, we can't really conclude anything else than that bilinear regridding is a worst downscaling technique than a region climate model.
+Detrended Quantile Mapping will adjust most properties marked as "marginal" by construction. Our algorithm divides the distribution of values for each day of the year into 50 bins and thus the percentile properties should look almost perfectly adjusted. Indeed, all members show over 90\% of improved grid points for the percentiles properties of pr and tasmax. Usually, the non-improved grid points are those where the simulation was already comparing well with the reference. This indicate that there is noise (variability) in the scenario and shows a limit in using this IMP metric. This can also be seen when comparing results for members where the initial resolution was 0.44° with those for the 0.22° sources: the former systematically have stronger IMP scores than the latter. However, we can't really conclude anything else than that bilinear regridding is a worst downscaling technique than a regional climate model.
 
 Scores are lower for tasmin. Recall that here tasmin is not directly adjusted, but is rather computed from the adjusted tasmax and dtr, the daily temperature range. This indirect adjustment seems to be visible when inspecting the properties and measures, as will be shown again further down. Conclusions are very similar for the "mean" properties.
 
@@ -53,8 +59,8 @@ The dry spell frequency has a similar behaviour where only members with large in
 As the bias adjustment acts separately on each day of the year and, as we've seen, the scenario distribution matches well the reference one, it would be expected that the annual cycle amplitude is well adjusted. And indeed, for both temperatures, the improvement is major for all members, most showing IMP values over 90 \%. Scores are slightly weaker for precipitation, but it is important to note that in some regions precipitation doesn't have an annual cycle as strong and as consistent as temperature. Still, IMP values are over 75 \% for two-thirds of the members. Again, there is strong correlation between the improvement amount and the initial bias. Some members had really inadequate annual cycle amplitude patterns before the adjustment, which makes their high IMP scores almost trivial. So much so that it becomes less a measure of the performance of the bias adjustment than a measure of the bias between the simulation and the reference, see figure~\ref{fig:acapr} for example.
 
 \begin{figure}
-\includegraphics[width=\textwidth]{../images/aca_pr_diags.png}
-\caption{Example of diagnostic maps showing a large bias betwen the simulation and the reference as well as a large improvements in the scenario.}\label{fig:acapr}
+\includegraphics[width=\textwidth]{../images/aca_pr_diags.pdf}
+\caption{Relative amplitude of the annual cycle of precipitation ICHEC-EC-EARTH DMI-HIRHAM5 rcp45, 1981-2010, Dene region. This example of diagnostic maps showing a large bias betwen the simulation and the reference as well as a large improvements in the scenario.}\label{fig:acapr}
 \end{figure}
 
 
@@ -66,7 +72,13 @@ Our algorithm is inherently univariate, but the special treatment of tasmin does
 When looking at the biases in the tasmax-pr correlation, we do see large IMP values in some regions and members. In most of these cases, the initial bias between the simulations and the reference was quite large (much larger than in the tasmax-tasmin case), which leaves much room for improvement. This is visible as a strong correlation between the improvement of the measure in the scenario and its value in the simulation.
 
 \section{Spatial aspects}
-In the lack of real benchmark values, the spatial correlograms seem to visually show an already good fit between the simulations and the reference. However, we see no improvement in the scenarios. In general, the correlogram are very similar between the simulations and the scenarios and we see no significant change in the spatial correlation length (distance where the correlation drops below a certain threshold, taken here as 0.35 for all variables). Even though we explicitly take care of adjusting the dry days frequency, we do not see the spatial correlation improvement described by \cite{Francois2020}.
+In the lack of real benchmark values, the spatial correlograms seem to visually show an already good fit between the simulations and the reference. However, we see no improvement in the scenarios. In general, the correlogram are very similar between the simulations and the scenarios and we see no significant change in the spatial correlation length (distance where the correlation drops below a certain threshold, taken here as 0.35 for all variables). Figure~\ref{fig:scorr} shows an example where the bias is quite large (compared to the other members of the ensemble). Even though we explicitly take care of adjusting the dry days frequency, we do not see the spatial correlation improvement described by \cite{Francois2020}.
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{../images/correlogram_tasmin_diags.pdf}
+\caption{Correlogram for tasmin, member ICHEC-EC-EARTH DMI-HIRHAM5 rcp 4.5, Ute region, 1981-2010.}\label{fig:scorr}
+\end{figure}
 
 \begin{thebibliography}{6}
 \bibitem[FV20]{Francois2020} François, B., Vrac, M., Cannon, A. J., Robin, Y., \& Allard, D. (2020). Multivariate bias corrections of climate simulations: Which benefits for which losses? Earth System Dynamics, 11(2), 537–562. https://doi.org/10.5194/esd-11-537-2020

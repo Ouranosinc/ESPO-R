@@ -83,6 +83,9 @@ to extend it slightly further than the common area. As such, the region from 71.
 is fully covered by only 15 members. Data is only available on land, as the reference,
 ERA5-Land is only defined there.
 
+The following map shows the domain and the diagnostic regions used when assessing the performance of the bias adjustment.
+![domain](../images/regions_domain_map.pdf)
+
 ### Temporal coverage
 Because the bias-adjustment method requires and equal calendar (no leap days), all members
 using a standard calendar were converted to the noleap one by dropping any values for February 29th.
