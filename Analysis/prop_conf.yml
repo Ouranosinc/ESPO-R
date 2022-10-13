@@ -41,7 +41,7 @@ logging:
             level: DEBUG
 
 properties:
-  region: Haudenosaunee #Dene # Ute
+  region: Dene #Haudenosaunee #Dene # Ute
   filename: "{driving_institution}_{driving_model}_{institution}_{source}_{experiment}_{domain}_{level}_{kind}.zarr"
   ref_filename: "ERA5-land_{domain}_ref_properties.zarr"
   module: properties.yml

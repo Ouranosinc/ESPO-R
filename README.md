@@ -23,16 +23,19 @@ and can be easily deployed on High Performance Computing (HPC) environments.
 
 This repository contains the code used to generate and analyze the ESPO-R datasets. In
 addition to xclim and other freely available python libraries, it uses [xscen](https://github.com/Ouranosinc/xscen),
-a tool also developed at Ouranos to build climate data processing workflows. This tool
+a climate change scenario-building analysis framework, also developed at Ouranos. This tool
 as the particularity of relying on data catalogs as handled by [intake-esm](https://intake-esm.readthedocs.io/en/latest/index.html)
 as well as on YAML configuration files with a simple but specific structure. The catalog
 files and all paths needed by the configuration are missing from this repository, since
 they are specific to the data architecture of the computed running the code. To reproduce
 ESPO-R, one will need:
 
-- `CORDEX.json` and `CORDEX.csv` :An intake-esm catalog, compatible with xscen, listing the daily CORDEX datasets to use as inputs.
+- `CORDEX.json` and `CORDEX.csv` :An intake-esm catalog, compatible with xscen, listing the daily CORDEX and CRCM5 datasets to use as inputs.
 - `project.json` and `project.csv`: An intake-esm catalog, compatible with xscen, listing the datasets created by this code.
 - `paths.yml`: A yaml file with the paths needed by the workflows. `template_paths.yml` shows an example of such a file, one only needs to replace the placeholders.
+
+This version of ESPO-R was created in parallel with the development of xscen and different scripts will run with different pacakge versions, which are indicated at the top of the files.
+For the same reason, `project.json` is not created anywhere in the scripts. It should be created after running `biasadjust.py` with `xscen.ProjectCatalog.create('project.json')` and filled with the scenarios through an appropriate call to `xscen.parse_directory`.
 
 ## ESPO-R5 v1.0
 ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations, with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM. The simulation ensemble covers the period 1951-2100 at the daily frequency. It includes the variables `tasmin`, `tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5. Simulations are bias-adjusted using the ERA5-Land reference dataset. 

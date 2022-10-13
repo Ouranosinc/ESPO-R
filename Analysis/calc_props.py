@@ -147,7 +147,7 @@ if __name__ == '__main__':
             path_meas = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='sim', domain=region['name'], kind='measures', **crit)
             with Client(**CONFIG['dask']['client']) as client:
                 try:
-                    with timeout(5400, 'prop-meas-sim'):
+                    with timeout(3600, 'prop-meas-sim'):
                         dask.compute(
                             save_to_zarr(
                                 props, path_props, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a'
