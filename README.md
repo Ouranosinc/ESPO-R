@@ -23,11 +23,11 @@ and can be easily deployed on High Performance Computing (HPC) environments.
 
 This repository contains the code used to generate and analyze the ESPO-R datasets. In
 addition to xclim and other freely available python libraries, it uses [xscen](https://github.com/Ouranosinc/xscen),
-a tool also developed at Ouranos to build climate data processing workflows. This tool
-as the particularity of relying on data catalogs as handled by [intake-esm](https://intake-esm.readthedocs.io/en/latest/index.html)
+a tool also developed at Ouranos to assemble data processing workflows for constructing climate scenarios. This tool
+has the particularity of relying on data catalogs as handled by [intake-esm](https://intake-esm.readthedocs.io/en/latest/index.html)
 as well as on YAML configuration files with a simple but specific structure. The catalog
 files and all paths needed by the configuration are missing from this repository, since
-they are specific to the data architecture of the computed running the code. To reproduce
+they are specific to the data architecture of the computer running the code. To reproduce
 ESPO-R, one will need:
 
 - `CORDEX.json` and `CORDEX.csv` :An intake-esm catalog, compatible with xscen, listing the daily CORDEX datasets to use as inputs.
@@ -188,7 +188,7 @@ In order to assess the improvements and deteriorations that the process brought 
 While that project aimed to "to validate and compare downscaling methods", we recycled its idea of statistical "properties" and "measures" to measure bias between the simulations, scenarios and the reference.
 
 A detailed analysis is given in [the documentation](Documentation/performance.pdf).
-The general conclusions we can give about the quality of ESPO-R5 are:
+The general conclusions we can give about the quality of ESPO-R5v1.0 are:
 
  - The marginal properties of the simulations (mean, quantiles) are very well adjusted, by construction of the Quantile Mapping algorithm.
  - The climate change signal is also conserved from the simulations by construction of the algorithm.
