@@ -1,0 +1,49 @@
+{
+    "creators": [
+        {
+          "name": "Bourgault, Pascal",
+          "affiliation": "Ouranos",
+          "orcid": "0000-0003-1192-0403"
+        },
+        {
+          "name": "Logan, Travis",
+          "affiliation": "Ouranos",
+          "orcid": "0000-0002-2212-9580"
+        },
+        {
+          "name": "Lavoie, Juliette",
+          "affiliation": "Ouranos",
+          "orcid": "0000-0002-4708-5182"
+        },
+        {
+          "name": "Smith, Trevor James",
+          "affiliation": "Ouranos",
+          "orcid": "0000-0001-5393-8359"
+        },
+        {
+          "name": "Biner, Sébastien",
+          "orcid": "0000-0001-7515-490X"
+        }
+    ],
+
+    "license": "cc-by",
+
+    "title": "ESPO-R : Ensemble de scénarios polyvalents d'Ouranos - Régional / Ouranos' Multipurpose Regional Climate Scenarios",
+
+    "related_identifiers": [
+        {
+            "scheme": "doi",
+            "identifier": "10.5065/D6SJ1JCH",
+            "relation": "isDerivedFrom",
+            "resource_type": "dataset"
+        },
+        {
+            "scheme": "doi",
+            "identifier": "10.24381/cds.e2161bac",
+            "relation": "isDerivedFrom",
+            "resource_type": "dataset"
+        }
+    ],
+
+    "keywords": ["climate", "bias adjustment", "bias correction", "quantile mapping", "North America"]
+}
