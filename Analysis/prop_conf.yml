@@ -1,0 +1,123 @@
+dask:
+    client:
+        dashboard_address: 8786
+        silence_logs: 50
+        n_workers: 1
+        threads_per_worker: 8
+        memory_limit: 32GB
+        local_directory: /exec/pbourg/temp2
+    array.slicing.split_large_chunks: False
+    local:
+        num_workers: 8
+        scheduler: threads
+        temporary_directory: /exec/pbourg/temp2
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : DEBUG
+    loggers:
+        workflow:
+            level: INFO
+            propagate: False
+            handlers: [console]
+        xscen:
+            level: INFO
+            propagate: False
+            handlers: [console]
+        xscen.catalog:
+            level: ERROR
+        xscen.io:
+            level: DEBUG
+        xscen.indicators:
+            level: ERROR
+        xscen.config:
+            level: DEBUG
+
+properties:
+  region: Haudenosaunee #Dene # Ute
+  filename: "{driving_institution}_{driving_model}_{institution}_{source}_{experiment}_{domain}_{level}_{kind}.zarr"
+  ref_filename: "ERA5-land_{domain}_ref_properties.zarr"
+  module: properties.yml
+
+paths:
+  properties: properties/
+
+scripting:
+    measure_time:
+        cpu: True
+    send_mail:
+        to: bourgault.pascal@ouranos.ca
+    send_mail_on_exit:
+        msg_ok: Toutes les étapes demandées ont été complétées.
+        msg_err: Une erreur est survenue durant le traitement.
+        on_error_only: True
+
+regrid:
+    regrid_dataset:
+        method: bilinear
+        unmapped_to_nan: True
+
+regions:
+  - name: Haudenosaunee
+    method: bbox
+    bbox:
+      lat_bnds: [42.0, 47.0]
+      lon_bnds: [-79.0, -71.0]
+  - name: Ute
+    method: bbox
+    bbox:
+      lat_bnds: [35.0, 40.0]
+      lon_bnds: [-111.0, -103.0]
+  - name: Dene
+    method: bbox
+    bbox: 
+      lat_bnds: [60.0, 65.0]
+      lon_bnds: [-124.0, -116.0]
+
+extract:
+  search_data_catalogs:
+    variables_and_freqs: 
+      tasmin: D
+      tasmax: D
+      pr: D
+    periods:
+      - 1981
+      - 2010
+      - 0.95
+    allow_resampling: True
+    allow_conversion: False
+    restrict_resolution: finest
+  extract_dataset:
+    xr_combine_kwargs:
+      data_vars: minimal
+      coords: minimal
+      compat: override
+
+  # Specifics for search_data_catalogs
+  ref:
+    data_catalogs: ['../CORDEX.json']
+    other_search_criteria:
+      id: ERA5-land_AMNO
+  sim:
+    data_catalogs: ['../CORDEX.json']
+    match_hist_and_fut: True
+  sim-mrcc5:
+    data_catalogs: ['../MRCC5.json']
+    match_hist_and_fut: True
+  scen:
+    data_catalogs: ['../project.json']
+
+diagnostics:
+  properties_and_measures:
+    change_units_args:
+      variables_and_units:
+        tasmax: K
+        tasmin: K
+        pr: mm d-1
