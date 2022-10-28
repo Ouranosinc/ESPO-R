@@ -1,4 +1,4 @@
-# ESPO-R : Ouranos' Multipurpose Regional Climate Scenarios
+# ESPO-R : Ensemble de scénarios polyvalents d'Ouranos - Régional / Ouranos' Multipurpose Regional Climate Scenarios
 
 ## Context
 The need to adapt to climate change is present in a growing number of fields, 
