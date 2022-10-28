@@ -41,21 +41,13 @@ logging:
             level: DEBUG
 
 properties:
-  region: Dene #Haudenosaunee #Dene # Ute
+  region: Haudenosaunee #Dene # Ute
   filename: "{driving_institution}_{driving_model}_{institution}_{source}_{experiment}_{domain}_{level}_{kind}.zarr"
   ref_filename: "ERA5-land_{domain}_ref_properties.zarr"
   module: properties.yml
 
 paths:
-  workdir: /scen3/smith/scengen_v2/TEMP
-  refdir: /scen3/smith/scengen_v2/REFS
-  reference: /exec/pbourg/ProjAnalogues/daily_ERA5-Land_NAM_1981-2020.zarr
-  checkfigs: /scen3/smith/scengen_v2/FINAL/{region}/checkup/
-  checkups: /scen3/smith/scengen_v2/FINAL/{region}/checkup/{simulation}_{scenario}_{step}.zarr
-  reports: /scen3/smith/scengen_v2/FINAL/{region}/perfs/{simulation}_{scenario}/
-  output: /scen3/smith/scengen_v2/FINAL/{region}/ZARR/day_{simulation}_{scenario}_1950-2100.zarr
-  concat_output: /tank/smith/espo-r5_temp/day_{simulation}_{scenario}_1950-2100.zarr
-  properties: /tank/smith/espo-r5_temp/properties/
+  properties: properties/
 
 scripting:
     measure_time:

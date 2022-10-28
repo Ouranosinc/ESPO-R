@@ -15,7 +15,7 @@ from xscen.extract import search_data_catalogs, extract_dataset
 from xscen.indicators import load_xclim_module
 from xscen.io import save_to_zarr
 from xscen.regrid import regrid_dataset
-from xscen.scripting import send_mail, send_mail_on_exit, timeout, TimeoutException
+from xscen.scripting import send_mail, send_mail_on_exit, timeout, TimeoutException, skippable
 logger = logging.getLogger('workflow')
 
 
@@ -34,6 +34,21 @@ def has_been_done(cat, kind, N, **crit):
         elif len(meas) == 0 or len(meas.df.variable[0]) != N:
             ans = False
     return ans
+
+
+def ensure_daily_midnight(ds):
+    counts = ds.time.resample(time='D').count()
+    if any(counts > 1):
+        raise ValueError(
+            "Dataset is labelled as having a sampling frequency of "
+            "D, but some periods have more than one data point."
+        )
+    if any(counts.isnull()):
+        raise ValueError(
+            "The resampling count contains nans. There might be some missing data."
+        )
+    ds["time"] = counts.time
+    return ds
 
 
 if __name__ == '__main__':
@@ -73,93 +88,91 @@ if __name__ == '__main__':
                 cat.update_from_ds(props_ref, path=path)
 
     for i, member in members.iterrows():
-        crit = member[['driving_institution', 'driving_model', 'institution', 'source', 'experiment']].to_dict()
-        if crit['source'] == 'ERA5-land':
-            continue
+        with skippable(2, task=member['id'], logger=logger):
+            crit = member[['driving_institution', 'driving_model', 'institution', 'source', 'experiment']].to_dict()
+            if crit['source'] == 'ERA5-land':
+                continue
 
-        path_sim = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='sim', domain=region['name'], kind='properties', **crit)
-        did_scen = has_been_done(cat, 'scen', N, domain=region['name'], id=member['id'])
-        did_sim = has_been_done(cat, 'sim', N, domain=region['name'], id=member['id'])
+            path_sim = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='sim', domain=region['name'], kind='properties', **crit)
+            did_scen = has_been_done(cat, 'scen', N, domain=region['name'], id=member['id'])
+            did_sim = has_been_done(cat, 'sim', N, domain=region['name'], id=member['id'])
 
-        if not did_scen or not did_sim:
-            scen_ct = search_data_catalogs(
-                other_search_criteria={'processing_level': 'biasadjusted', **crit}, **CONFIG['extract']['scen']
-            ).popitem()[1]
-            dscen = extract_dataset(scen_ct, region=region)['D']
-            print()
+            # Open scen
+            if did_scen:
+                logger.info(f"Already computed properties and measures for scen {member['id']}")
+            else:
+                logger.info(f"Computing properties and measures for scen {member['id']}")
+                props, meas = properties_and_measures(
+                    dscen.chunk({'time': -1}),
+                    mod,
+                    dref_for_measure=props_ref,
+                    to_level_prop='prop-scen',
+                    to_level_meas='meas-scen'
+                )
+                path_props = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='scen', domain=region['name'], kind='properties', **crit)
+                path_meas = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='scen', domain=region['name'], kind='measures', **crit)
 
-        # Open scen
-        if did_scen:
-            logger.info(f"Already computed properties and measures for scen {member['id']}")
-        else:
-            logger.info(f"Computing properties and measures for scen {member['id']}")
-            props, meas = properties_and_measures(
-                dscen.chunk({'time': -1}),
-                mod,
-                dref_for_measure=props_ref,
-                to_level_prop='prop-scen',
-                to_level_meas='meas-scen'
-            )
-            path_props = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='scen', domain=region['name'], kind='properties', **crit)
-            path_meas = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='scen', domain=region['name'], kind='measures', **crit)
+                with Client(**CONFIG['dask']['client']) as client:
+                    try:
+                        with timeout(3600, 'prop-meas-scen'):
+                            pdel = save_to_zarr(props, path_props, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a'),
+                            mdel = save_to_zarr(meas, path_meas, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a')
+                            dask.compute(pdel, mdel)
+                    except TimeoutException as err:
+                        send_mail(subject="Scen diags timed out", msg=f"Diagnostics of {member['id']} (scen) timed out with {err}")
+                    else:
+                        cat.update_from_ds(props, path=path_props)
+                        cat.update_from_ds(meas, path=path_meas)
 
-            with Client(**CONFIG['dask']['client']) as client:
+            # Open sim
+            if did_sim:
+                logger.info(f"Already computed properties for sim {member['id']}")
+            else:
+                logger.info(f"Computing properties for sim {member['id']}")
+                # We need to pad the different catalog scheme
+                cordex_crit = crit.copy()
+                inst = cordex_crit.pop('driving_institution')
+                cordex_crit['driving_model'] = f"{inst}-{crit['driving_model']}"
+                if 'GEMatm' in crit['driving_model']:
+                    cordex_crit['driving_model'] += '-ESMsea'
+                cordex_crit['source'] = f"{crit['institution']}-{crit['source']}"
                 try:
-                    with timeout(3600, 'prop-meas-scen'):
-                        pdel = save_to_zarr(props, path_props, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a'),
-                        mdel = save_to_zarr(meas, path_meas, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a')
-                        dask.compute(pdel, mdel)
-                except TimeoutException as err:
-                    send_mail(subject="Scen diags timed out", msg=f"Diagnostics of {member['id']} (scen) timed out with {err}")
-                else:
-                    cat.update_from_ds(props, path=path_props)
-                    cat.update_from_ds(meas, path=path_meas)
+                    sim_ct = search_data_catalogs(other_search_criteria=cordex_crit, **CONFIG['extract']['sim']).popitem()[1]
+                except ValueError as err:
+                    logger.warning(f"Got {err}.")
+                    sim_ct = search_data_catalogs(other_search_criteria=crit, **CONFIG['extract']['sim-mrcc5']).popitem()[1]
+                dsim_raw = extract_dataset(
+                    sim_ct,
+                    region={'buffer': 3, **region},
+                    xr_open_kwargs={'drop_variables': ['time_bnds']},
+                    preprocess=ensure_daily_midnight,
+                )['D']
+                print()
+                dsim = regrid_dataset(dsim_raw, '/dev/shm', props_ref)
 
-        # Open sim
-        if did_sim:
-            logger.info(f"Already computed properties for sim {member['id']}")
-        else:
-            logger.info(f"Computing properties for sim {member['id']}")
-            # We need to pad the different catalog scheme
-            cordex_crit = crit.copy()
-            inst = cordex_crit.pop('driving_institution')
-            cordex_crit['driving_model'] = f"{inst}-{crit['driving_model']}"
-            if 'GEMatm' in crit['driving_model']:
-                cordex_crit['driving_model'] += '-ESMsea'
-            cordex_crit['source'] = f"{crit['institution']}-{crit['source']}"
-            try:
-                sim_ct = search_data_catalogs(other_search_criteria=cordex_crit, **CONFIG['extract']['sim']).popitem()[1]
-            except ValueError as err:
-                logger.warning(f"Got {err}.")
-                sim_ct = search_data_catalogs(other_search_criteria=crit, **CONFIG['extract']['sim-mrcc5']).popitem()[1]
-            dsim_raw = extract_dataset(sim_ct, region={'buffer': 3, **region}, xr_open_kwargs={'drop_variables': ['time_bnds']})['D']
-            print()
-            dsim = regrid_dataset(dsim_raw, '/dev/shm', dscen)
-
-            props, meas = properties_and_measures(
-                dsim.chunk({'time': -1}),
-                mod,
-                dref_for_measure=props_ref,
-                to_level_prop='prop-sim',
-                to_level_meas='meas-sim'
-            )
-            path_props = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='sim', domain=region['name'], kind='properties', **crit)
-            path_meas = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='sim', domain=region['name'], kind='measures', **crit)
-            with Client(**CONFIG['dask']['client']) as client:
-                try:
-                    with timeout(3600, 'prop-meas-sim'):
-                        dask.compute(
-                            save_to_zarr(
-                                props, path_props, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a'
-                            ),
-                            save_to_zarr(
-                                meas, path_meas, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a'
+                props, meas = properties_and_measures(
+                    dsim.chunk({'time': -1}),
+                    mod,
+                    dref_for_measure=props_ref,
+                    to_level_prop='prop-sim',
+                    to_level_meas='meas-sim'
+                )
+                path_props = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='sim', domain=region['name'], kind='properties', **crit)
+                path_meas = Path(CONFIG['paths']['properties']) / CONFIG['properties']['filename'].format(level='sim', domain=region['name'], kind='measures', **crit)
+                with Client(**CONFIG['dask']['client']) as client:
+                    try:
+                        with timeout(3600, 'prop-meas-sim'):
+                            dask.compute(
+                                save_to_zarr(
+                                    props, path_props, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a'
+                                ),
+                                save_to_zarr(
+                                    meas, path_meas, compute=False, rechunk={'lon': -1, 'lat': -1, 'distance': -1}, mode='a'
+                                )
                             )
-                        )
-                except TimeoutException as err:
-                    send_mail(subject="Sim diags timed out", msg=f"Diagnostics of {member['id']} (sim) timed out with {err}")
-                else:
-                    cat.update_from_ds(props, path=path_props, info_dict={'id': member['id']})
-                    cat.update_from_ds(meas, path=path_meas, info_dict={'id': member['id']})
-
+                    except TimeoutException as err:
+                        send_mail(subject="Sim diags timed out", msg=f"Diagnostics of {member['id']} (sim) timed out with {err}")
+                    else:
+                        cat.update_from_ds(props, path=path_props, info_dict={'id': member['id']})
+                        cat.update_from_ds(meas, path=path_meas, info_dict={'id': member['id']})
     logger.info('All done.')

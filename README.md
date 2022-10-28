@@ -38,7 +38,7 @@ This version of ESPO-R was created in parallel with the development of xscen and
 For the same reason, `project.json` is not created anywhere in the scripts. It should be created after running `biasadjust.py` with `xscen.ProjectCatalog.create('project.json')` and filled with the scenarios through an appropriate call to `xscen.parse_directory`.
 
 ## ESPO-R5 v1.0
-ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations, with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM. The simulation ensemble covers the period 1951-2100 at the daily frequency. It includes the variables `tasmin`, `tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
+ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations (Mearns et al., 2017), with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM. The simulation ensemble covers the period 1951-2100 at the daily frequency. It includes the variables `tasmin`, `tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
 CORDEX and MRCC5 data was first resampled to a daily timestep before entering the ESPO-R5 workflow.
 
 | **Driving: institution** | **Driving : model** | **Driving : member id** | **Institution** | **Model** | **Experiment id** | **Initial Resolution** | **CORDEX** | **Calendar converted** |
@@ -201,6 +201,7 @@ The general conclusions we can give about the quality of ESPO-R5v1.0 are:
  - A side effect of adjusting the distributions explicitly is the improvement of the inter-variable correlation and some spatial diagnostics (first EOF for tasmax), even though the bias correction algorithm does not aim to adjust these aspects.
  - Because tasmin is not directly adjusted, but rather computed from the adjusted tasmax and dtr, it seems that our diagnostics show weaker improvements, compared to tasmax.
 
+A subset of the properties and measures discussed in the performance analysis is made available in this repository, in the `data/` folder.
 
 ## References
 Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietroniro, A., and Cannon, A. (2020): High-resolution meteorological forcing data for hydrological modelling and climate change impact analysis in the Mackenzie River Basin, Earth Syst. Sci. Data, 12, 629–645, https://doi.org/10.5194/essd-12-629-2020.
@@ -220,6 +221,8 @@ Logan, T., Bourgault, P., Smith, T. J., Huard, D., Biner, S., Labonté, M.-P., R
 Maraun, D., Widmann, M., Gutiérrez,  J.M., Kotlarski, S., Chandler, R. E., Hertig, E., Wibig, J., Huth, R., Wilcke, R. A. I. (2015). VALUE: A Framework to Validate Downscaling Approaches for Climate Change Studies. Earth’s Future 3, 1, 1‑14. https://doi.org/10.1002/2014EF000259.
 
 McKenney, D.W., M.F. Hutchinson, P. Papadol, K. Lawrence, J. Pedlar, K. Campbell, E. Milewska, R.F. Hopkinson, D. Price, and T. Owen, 2011. Customized Spatial Climate Models for North America. Bull. Amer. Meteor. Soc., 92, 1611-1622, https://doi.org/10.1175/2011BAMS3132.1
+
+Mearns, L.O., et al., 2017: The NA-CORDEX dataset, version 1.0. NCAR Climate Data Gateway, Boulder CO,https://doi.org/10.5065/D6SJ1JCH
 
 Mekis, É and L.A. Vincent, 2011: An overview of the second generation adjusted daily precipitation dataset for trend analysis in Canada. Atmosphere-Ocean 49(2), 163-177 doi:10.1080/07055900.2011.583910
 
