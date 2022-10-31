@@ -38,8 +38,10 @@ This version of ESPO-R was created in parallel with the development of xscen and
 For the same reason, `project.json` is not created anywhere in the scripts. It should be created after running `biasadjust.py` with `xscen.ProjectCatalog.create('project.json')` and filled with the scenarios through an appropriate call to `xscen.parse_directory`.
 
 ## ESPO-R5 v1.0
-ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations (Mearns et al., 2017), with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM. The simulation ensemble covers the period 1951-2100 at the daily frequency. It includes the variables `tasmin`, `tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
+ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCM). The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations (Mearns et al., 2017), with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM (Mittermeier et al., 2021). The simulation ensemble covers the period 1951-2100 at the daily frequency. It includes the variables `tasmin`, `tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5. Simulations are bias-adjusted using the ERA5-Land reference dataset. 
 CORDEX and MRCC5 data was first resampled to a daily timestep before entering the ESPO-R5 workflow.
+
+**Table 1. Members of ESPO-R5 v1.0.**
 
 | **Driving: institution** | **Driving : model** | **Driving : member id** | **Institution** | **Model** | **Experiment id** | **Initial Resolution** | **CORDEX** | **Calendar converted** |
 |--------------------------|---------------------|-------------------------|-----------------|-----------|-------------------|------------------------|------------|------------------------|
@@ -132,7 +134,7 @@ reference dataset, with results varying by season or criteria. As such, ERA5-Lan
 generally shows good results while presenting the advantages of an increased spatial and temporal resolution
 as well as a temporal coverage up to the present (Table 1).
 
-**Table 1. Summary of reference dataset candidates for ESPO-R v1.0.**
+**Table 2. Summary of reference dataset candidates for ESPO-R v1.0.**
 
 | Dataset             | Start year | End year    | Spatial coverage       | Spatial resolution | Temporal resolution | Reference                               |
 |---------------------|------------|-------------|------------------------|--------------------|---------------------|-----------------------------------------| 
@@ -203,6 +205,13 @@ The general conclusions we can give about the quality of ESPO-R5v1.0 are:
 
 A subset of the properties and measures discussed in the performance analysis is made available in this repository, in the `data/` folder.
 
+## Acknowledgements
+We acknowledge the World Climate Research Programme's Working Group on Regional Climate, and the Working Group on Coupled Modelling, former coordinating body of CORDEX and responsible panel for CMIP5. We also thank the climate modelling groups (listed in Table 1) for producing and making available their model output. We also acknowledge the U.S. Department of Defense ESTCP for its support of the NA-CORDEX data archive,
+
+The  CRCM5  data  has  been generated  and  supplied  by  Ouranos. The Canadian Regional Climate Model (CRCM5; Martynov et al. 2013, Separovic et al. 2013) was developed by the ESCER Centre at UQAM (Université du Québec à Montréal) with the collaboration of Environment and Climate Change Canada. CRCM5 computations were made on the supercomputers beluga and narval managed by Calcul Québec and the Digital Research Alliance of Canada (alliancecan.ca). The operation of this supercomputer received financial support from Innovation, Science and Economic Development Canada and the Ministère de l’Économie et de l’Innovation du Québec.
+
+The ESPO-R5 data was generated using Copernicus Climate Change Service Information 2021.
+
 ## References
 Asong, Z. E., Elshamy, M. E., Princz, D., Wheater, H. S., Pomeroy, J. W., Pietroniro, A., and Cannon, A. (2020): High-resolution meteorological forcing data for hydrological modelling and climate change impact analysis in the Mackenzie River Basin, Earth Syst. Sci. Data, 12, 629–645, https://doi.org/10.5194/essd-12-629-2020.
 
@@ -225,6 +234,8 @@ McKenney, D.W., M.F. Hutchinson, P. Papadol, K. Lawrence, J. Pedlar, K. Campbell
 Mearns, L.O., et al., 2017: The NA-CORDEX dataset, version 1.0. NCAR Climate Data Gateway, Boulder CO,https://doi.org/10.5065/D6SJ1JCH
 
 Mekis, É and L.A. Vincent, 2011: An overview of the second generation adjusted daily precipitation dataset for trend analysis in Canada. Atmosphere-Ocean 49(2), 163-177 doi:10.1080/07055900.2011.583910
+
+Mittermeier, M., Bresson, E., Paquin, D., Ludwig, R., 2021. A deep learning approach for the identification of long-duration mixed precipitation in Montréal (Canada). Atmosphere-Ocean. https://doi.org/10.1080/07055900.2021.1992341
 
 Muñoz Sabater, J., (2019): ERA5-Land hourly data from 1981 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). (Accessed on 15-12-2021), 10.24381/cds.e2161bac
 
