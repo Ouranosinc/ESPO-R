@@ -26,8 +26,9 @@
         }
     ],
 
-    "license": "cc-by",
-
+    "license": "Apache-2.0",
+    "upload_type": "software",
+    "access_right": "open",
     "title": "ESPO-R : Ensemble de scénarios polyvalents d'Ouranos - Régional / Ouranos' Multipurpose Regional Climate Scenarios",
 
     "related_identifiers": [
@@ -45,5 +46,18 @@
         }
     ],
 
-    "keywords": ["climate", "bias adjustment", "bias correction", "quantile mapping", "North America"]
+    "keywords": [
+        "climate", 
+        "bias adjustment", 
+        "quantile mapping",
+        "North America",
+        "analysis",
+        "bias correction",
+        "climatology",
+        "climate change",
+        "climate data",
+        "climate indicators",
+        "climate simulation",
+        "era5"
+    ]
 }
