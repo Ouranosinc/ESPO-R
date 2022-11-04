@@ -205,6 +205,9 @@ The general conclusions we can give about the quality of ESPO-R5v1.0 are:
 
 A subset of the properties and measures discussed in the performance analysis is made available in this repository, in the `data/` folder.
 
+## Data availability
+The ESPO-R5v1.0 data is currently available under the [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) license.
+
 ## Acknowledgements
 We acknowledge the World Climate Research Programme's Working Group on Regional Climate, and the Working Group on Coupled Modelling, former coordinating body of CORDEX and responsible panel for CMIP5. We also thank the climate modelling groups (listed in Table 1) for producing and making available their model output. We also acknowledge the U.S. Department of Defense ESTCP for its support of the NA-CORDEX data archive,
 
