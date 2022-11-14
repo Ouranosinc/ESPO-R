@@ -203,8 +203,14 @@ The general conclusions we can give about the quality of ESPO-R5v1.0 are:
 
 A subset of the properties and measures discussed in the performance analysis is made available in this repository, in the `data/` folder.
 
-## Data availability
+## Data availability and download
 The ESPO-R5v1.0 data is currently available under the [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) license.
+
+At the time of publication, the data is stored on [Ouranos](https://www.ouranos.ca/)' THREDDS server, a part of the [PAVICS](https://pavics.ouranos.ca/) project:
+
+https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/catalog/datasets/simulations/bias_adjusted/cmip5/ouranos/ESPO-R/ESPO-R5v1.0.0/catalog.html
+
+When new versions of ESPO-R will be released, previous versions might be removed from the server. [Please contact us](mailto:scenario@ouranos.ca) if you wish to obtain these.
 
 ## Acknowledgements
 We acknowledge the World Climate Research Programme's Working Group on Regional Climate, and the Working Group on Coupled
