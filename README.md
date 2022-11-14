@@ -210,7 +210,7 @@ At the time of publication, the data is stored on [Ouranos](https://www.ouranos.
 
 https://pavics.ouranos.ca/twitcher/ows/proxy/thredds/catalog/datasets/simulations/bias_adjusted/cmip5/ouranos/ESPO-R/ESPO-R5v1.0.0/catalog.html
 
-When new versions of ESPO-R will be released, previous versions might be removed from the server. [Please contact us](mailto:scenario@ouranos.ca) if you wish to obtain these.
+When new versions of ESPO-R will be released, previous versions might be removed from the server. [Please contact us](mailto:scenarios@ouranos.ca) if you wish to obtain these.
 
 ## Acknowledgements
 We acknowledge the World Climate Research Programme's Working Group on Regional Climate, and the Working Group on Coupled
