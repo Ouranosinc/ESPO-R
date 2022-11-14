@@ -1,14 +1,10 @@
 dask:
-    client:
+    client-base:
         dashboard_address: 8786
         silence_logs: 50
-        n_workers: 2
-        threads_per_worker: 6
-        memory_limit: 16GB
     array.slicing.split_large_chunks: False
-    local:
-        num_workers: 8
-        scheduler: threads
+    num_workers: 8
+    scheduler: threads
 
 logging:
     formatters:
@@ -37,7 +33,7 @@ logging:
         level: INFO
         handlers: [console]
 
-scr_utils:
+scripting:
     measure_time:
         cpu: True
     send_mail:
@@ -47,50 +43,52 @@ scr_utils:
         msg_err: Une erreur est survenue durant le traitement.
         on_error_only: True
 
-extraction:
-    variables:
-        tasmax: D
-        tasmin: D
-        pr: D
+extract:
+    search_data_catalogs:
+        variables_and_freqs:
+            tasmax: D
+            tasmin: D
+            pr: D
+        id_columns:
+            - driving_source
+            - institution
+            - source
+            - experiment
+        allow_resampling: True
+        allow_conversion: False
+        restrict_resolution: finest
+    extract_dataset:
+        xr_open_kwargs:
+            use_cftime: True
+            drop_variables:
+                - time_bnds
+    ref:
+        other_search_criteria:
+            source: ERA5
+    gridref:
+        other_search_criteria:
+            source: ERA5-land
+    sim:
+        match_hist_and_fut: True
 
 project:
     id: ESPO-R5
     title: Data generated for ESPO-R5
-    version: v1.0
+    version: v1.0.1
 
-custom:
+main:
     variables: ['tasmax', 'tasmin', 'pr']
-    region: middle
-    bbox:
-        north:
-            lon_bnds: [-147.55, -52.65]
-            lat_bnds: [74.25, 59.25]
-        middle:
-            lon_bnds: [-147.55, -52.65]
-            lat_bnds: [59.25, 44.25]
-        south:
-            lon_bnds: [-147.55, -52.65]
-            lat_bnds: [44.25, 19.25]
-        fixnm:
-            lon_bnds: [-147.55, -52.65]
-            lat_bnds: [59.35, 59.15]
-        fixms:
-            lon_bnds: [-147.55, -52.65]
-            lat_bnds: [44.35, 44.15]
-        fixs:
-            lon_bnds: [-147.55, -52.65]
-            lat_bnds: [19.35, 19.15]
+    region: iles
     chunks:
         lat: 20  # if stack_drop_nans is False
         lon: 20  # idem
         loc: 600 # if stack_drop_nans is True, for 126 Mo chunks
         time : -1
-    stack_drop_nans: True
+    stack_drop_nans: False
     out_chunks:  # This gives ~14 Mo per chunk. netCDFs will be yearly so ~3.5 Mo
         lat: 50
         lon: 50
         time: 4year
-    maximal_calendar: noleap
     reference_period:
         - 1981
         - 2010
@@ -110,17 +108,17 @@ custom:
         - units
     attrs:
         global:
-            Conventions: CF-1.9
-            title: ESPO-R5 v1.0.0 - {simulation} {scenario} - Region {region}
+            Conventions: CF-1.10
+            title: ESPO-R5 v1.0.1 - {driving_source}_{institution}_{source}_{experiment} - Region {domain}
             institution: Ouranos
             source: |
                 Regridded on the grid of ERA5-Land, then bias-adjusted with detrended
                 quantile mapping on a day-of-year basis with a window of 31 days, LOESS
-                detrending and 50 quantiles (0.01 to 0.99). The reference was ERA5-Land
+                detrending and 50 quantiles (0.01 to 0.99). The reference was ERA5
                 over the 1981-2010 period. Tasmax, dtr and pr were adjusted, tasmin was
                 computed from tasmax and dtr after the adjustment.
             redistribution: Redistribution prohibited. For internal use only.
-            version: "1.0.0"
+            version: "1.0.1"
         tasmax:
             standard_name: air_temperature
             long_name: Maximal daily temperature
@@ -133,6 +131,29 @@ custom:
             standard_name: precipitation_flux
             long_name: Mean daily precipitation flux
             cell_methods: "time: mean within days"
+regions:
+    north:
+        bbox:
+            lon_bnds: [-147.55, -52.65]
+            lat_bnds: [74.25, 59.25]
+        name: north
+        method: bbox
+    middle:
+        bbox:
+            lon_bnds: [-147.55, -52.65]
+            lat_bnds: [59.25, 44.25]
+        name: middle
+        method: bbox
+    south:
+        bbox:
+            lon_bnds: [-147.55, -52.65]
+            lat_bnds: [44.25, 19.25]
+        name: south
+        method: bbox
+    iles:
+        name: iles
+        method: shape
+
 biasadjust:
     train:
         reference_period:
@@ -201,8 +222,8 @@ biasadjust:
                         weights: tricube
                 interp: nearest
                 extrapolation: constant
-regridding:
-    regrid:
+regrid:
+    regrid_dataset:
         method: bilinear
         unmapped_to_nan: True
 
