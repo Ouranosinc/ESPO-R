@@ -90,7 +90,7 @@ As the bias-adjustment method requires a consistent number of calendar days (no 
 calendar were converted to the noleap one by dropping any values for February 29th. `MOHC_HadGEM2-ES_NCAR_WRF_rcp85`
 is the only member simulated with a 360-day calendar, and was kept as is.
 
-The bias-adjustment was calibrated over the years 1981-2010 period and applied to the full 1951-2100 period.
+The bias-adjustment was calibrated over the years 1981-2010 and applied to the full 1951-2100 period.
 However, some CORDEX members do not fully cover that period. At least one variable is missing on the following dates:
 - All members simulated with CRCM5: 2100-12-31
 - MOHC_HadGEM2-ES_NCAR_WRF_rcp85:  1991-12-31, 2055-12-31 and 2099-12-01 to 2100-12-31

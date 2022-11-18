@@ -56,7 +56,7 @@ With $F_{Y_r'}$ and $F_{X_c'}$ the empirical cumulative distribution functions (
 A_+(q) := F^{-1}_{Y_r'}\left(q\right) - F^{-1}_{X_c'}\left(q\right)  && A_\times(q) := \frac{F^{-1}_{Y_r'}\left(q\right)}{F^{-1}_{X_c'}\left(q\right)}
 \end{align}
 Where $q$ is a quantile (in range $[0, 1]$), $A_+(q)$ is the additive function used with \texttt{tasmax} and $A_\times(q)$ the multiplicative one, used with \texttt{pr} and \texttt{dtr}.
-The CDFs were then estimated from the 30 to 31-day windows.
+The CDFs were then estimated from the 30 31-day windows.
 In the implementation, maps of $A$ were saved to disk by sampling $q$ with 50 values, going from 0.01 to 0.99 by steps of 0.02.
 The adjustment was then as follows:
 \begin{align}
