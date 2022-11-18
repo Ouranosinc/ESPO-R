@@ -39,7 +39,7 @@ In addition to those reference-period diagnostics, we looked at the climate chan
 \end{table}
 
 The \emph{properties} were computed for the calibration period (years 1981-2010) for the raw simulations, the bias-adjusted scenarios, and the reference (ERA5-Land).
-The results for the raw simulations were compared to those for the reference using a \emph{measure} appropriate for the respective property.\footnote{All properties in \ref{tab:props} were compared using a simple bias measure ($P_{sim} - P_{ref}$) except for the \emph{relative amplitude of the annual cycle}, which used the ratio measure ($P_{sim} / P_{ref}$)}. This way, for each member of the ensemble, one can visualize a given property and compare the measures to assess the improvement brought by the bias adjustment. Because of performance issues, the properties and measures were not computed on the full domain of ESPO-R, but rather on three smaller regions chosen to cover different climate types. These are shown in figure~\ref{fig:map}.
+The results for the raw simulations were compared to those for the reference using a \emph{measure} appropriate for the respective property. This way, for each member of the ensemble, one can visualize a given property and compare the measures to assess the improvement brought by the bias adjustment. Because of performance issues, the properties and measures were not computed on the full domain of ESPO-R, but rather on three smaller regions chosen to cover different climate types. These are shown in figure~\ref{fig:map}.
 
 \begin{figure}
     \centering
@@ -47,8 +47,21 @@ The results for the raw simulations were compared to those for the reference usi
     \caption{Map showing the domain of ESPO-R5v1.0 and the three diagnostics regions used in this study. All three regions have the same number of points, their size varies on this figure because of its rotated pole projection.}\label{fig:map}
 \end{figure}
 
-To complement this useful but quite exhaustive collection of maps, the proportion of improved grid points (we'll call this indicator IMP) was found for each property.
-A grid point is said to have been improved if the bias (ratio) between the scenario and the reference is smaller (closer to 1) than the one between the raw simulation and the reference.
+To complement this useful but quite exhaustive collection of maps, the proportion of improved grid points (we'll call this indicator IMP) was found for each property. The IMP score for a given member, property and region can be defined as
+\begin{align}
+IMP = \frac{1}{N}\sum_{i,j} I_{i,j} && \text{where} &&
+I_{i,j} = \left\{
+     \begin{array}{rl}
+      1 & \text{if } |M^{sim}_{i,j}| > |M^{scen}_{i,j}|\\
+      0 & \text{if } |M^{sim}_{i,j}| < |M^{scen}_{i,j}|
+     \end{array}
+     \right.
+\end{align}
+and where $M$ is the measure of the bias between the simulation (sim) or adjusted (scen) data and the reference (ref). For most properties $P$, it is a simple bias : $M^{sim} = P^{sim} - P^{ref}$ (and similarly for $M^{scen}$). A grid point $(i, j)$ is said to have been improved if the bias between the scenario and the reference is closer to zero than the one between the raw simulation and the reference. The only exception is for the \emph{relative amplitude of the annual cycle}, which uses a ratio : $M^{sim} = \frac{P^{sim}}{P^{ref}}$. In that case, the improved condition $I_{i,j}$ becomes true if the measure on the adjusted data is closer to 1:
+\begin{align*}
+|M^{sim}_{i,j} - 1| > | M^{scen}_{i,j} - 1|
+\end{align*}
+
 By taking the mean across all members of the ensemble, this allowed us to have an idea of which properties were improved by the bias adjustment (those with IMP close to 100 \%), which were not impacted (IMP around 50\%), and which were worsened (IMP smaller than 50 \%).
 Fortunately, we found almost no properties of the latter case in this study. Figure~\ref{fig:imp} shows a heat map of those IMP values for each member and properties.
 
@@ -58,7 +71,8 @@ Fortunately, we found almost no properties of the latter case in this study. Fig
     \caption{The proportion of improved gridpoints (IMP) for the Haudenausonee region.}\label{fig:imp}
 \end{figure}
 
-As always when asserting the quality of a bias-adjustment, one must not forget that terms like "improvement" and "performance" refer to the change in comparison with the reference which is taken as the "Truth" in this context.
+As always when asserting the quality of a bias-adjustment, one must not forget that terms like "improvement" and "performance" refer to the change in comparison with the reference.
+Within the context of bias-adjustment, the reference is taken as the "Truth", as if it was an exact representation of the real climate.
 Thus, the validity of bias-adjusted datasets are limited by the validity of the reference dataset.
 A succinct analysis of ERA5-Land is detailed in the README at the root of this repository and provides the justification for using it as our reference.
 
@@ -70,7 +84,7 @@ Values for most properties, and their measures, on the Haudenosaunee region are 
 Other regions and missing properties can be provided to interested parties on demand.
 
 \section{Marginal aspects}\label{sec:marg}
-Detrended Quantile Mapping will adjust most properties marked as "marginal" by construction.
+Detrended Quantile Mapping will adjust most properties marked as "marginal" by design.
 Our algorithm divides the distribution of values for each day of the year into 50 bins and thus the percentile properties should look almost perfectly adjusted (see figure~\ref{fig:qq}).
 Indeed, all members show over 90\% of improved grid points for the percentiles properties of pr and tasmax.
 Oftentimes the non-improved grid points are those where the simulation was already comparing well with the reference.
@@ -87,9 +101,12 @@ However, we can't really conclude anything other than the observation that bilin
 Scores are lower for tasmin. Recall that here tasmin is not directly adjusted, but is rather computed from the adjusted tasmax and dtr, the daily temperature range.
 This indirect adjustment seems to be visible when inspecting the properties and measures, as will be shown again further down.
 Conclusions are very similar for the "mean" properties.
+However, a discrepancy appears in the 99th quantile, but only for some models (see figure~\ref{tab:props}).
+For most members our IMP indicator seems to indicate an improvement from the adjustment, but some members show values close to 50 \% and two members (those where the RCM is driven by a simulation of the HadGEM2-ES model) show an overall worsening of the performance for that property.
+This might be an indication of a misbehaving adjustment of dtr, but we haven't studied that problem yet.
 
 The dry spell frequency has a similar behaviour where only members with large initial biases show strong IMP.
-This property is also somewhat adjusted by construction during the pre-processing of precipitation data, at least for members with too many dry days, when compared to the reference.
+This property is also somewhat adjusted by design during the pre-processing of precipitation data, at least for members with too many dry days, when compared to the reference.
 The process explained in the "Adjustment" document (section "Pre-processing of precipitation") is mostly meant to ensure valid quantile mappings, but it does have a small effect on the final scenarios.
 There are still some members where the frequency of dry days is nearly 6\% higher in the scenarios then in the reference, especially over lakes.
 The bias is also quite consistently positive for all members and regions.
@@ -142,7 +159,7 @@ Although we explicitly take care of adjusting the dry days frequency, we do not 
 \end{figure}
 
 \section{Climate change signal}
-Nothing much is to be said about the effect of the bias adjustment on the climate change signal since it is preserved by construction.
+Nothing much is to be said about the effect of the bias adjustment on the climate change signal since it is preserved by design.
 The use of a LOESS detrending with a 30-year window on each day of year preserves the mean change in the variables as simulated by the regional models.
 If we look at 30-year means of the variable, as is often done in climate change studies, there is no difference between the raw simulations and their adjusted scenarios (not shown).
 

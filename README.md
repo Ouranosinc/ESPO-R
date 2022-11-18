@@ -35,8 +35,7 @@ is not created anywhere in the scripts. It should be created after running `bias
 ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCMs). 
 The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations (Mearns et al., 2017),
 with additional runs made by Ouranos with the Canadian Regional Climate Model (CRCM5) developed at UQAM (Mittermeier et al., 2021). 
-The simulation ensemble covers the period for years 1951-2100 at the daily frequency, and includes the variables `tasmin`,
-`tasmax` and `pr`. There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5.
+The simulation ensemble covers the period for years 1951-2100 and includes the daily minimum temperature (`tasmin`), the daily maximum temperature (`tasmax`) and the daily mean precipitation flux (`pr`). There are 10 members following the RCP 4.5 emission scenario and 19 following the RCP 8.5.
 Simulations are bias-adjusted using the ERA5-Land reference dataset. CORDEX and CRCM5 data was first resampled to a
 daily timestep before entering the ESPO-R5 workflow.
 
