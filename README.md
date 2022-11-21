@@ -9,28 +9,6 @@ availability of climate scenarios responding to numerous vulnerability, impact, 
 This operational product consists of two related datasets 1) ESPO-R (described here) produced from bias-adjusted regional
 climate simulations, and 2) ESPO-G produced following the same methodology, but from global simulations available via the CMIP program.
 
-## Data processing tools
-Production and regular updates of ESPO-R/G operational datasets represents a challenge in terms of computational resources. 
-Ouranos has invested a great deal of effort in the development of powerful tools for this type of data processing via its 
-[xclim software package](https://xclim.readthedocs.io/en/stable/) (Logan et al., 2021). Built upon the packages
-[xarray](https://xarray.dev/) and [dask](https://www.dask.org/), xclim benefits from simple-to-use parallelization and
-distributed computing tools and can be easily deployed in High Performance Computing (HPC) environments.
-
-This repository contains the code used to generate and analyze the ESPO-R datasets. In addition to xclim and other
-freely available python libraries, it also uses [xscen](https://github.com/Ouranosinc/xscen), a climate change
-scenario-building analysis framework, also being developed at Ouranos. This tool relies on data catalogs as handled by
-[intake-esm](https://intake-esm.readthedocs.io/en/latest/index.html) as well as on YAML configuration files with a
-simple but specific structure. The catalog files and all paths needed by the configuration are missing from this
-repository, since they are specific to the data architecture of the computer running the code. To reproduce ESPO-R, one will need:
-
-- `CORDEX.json` and `CORDEX.csv` :An intake-esm catalog, compatible with xscen, listing the daily CORDEX and CRCM5 datasets to use as inputs.
-- `project.json` and `project.csv`: An intake-esm catalog, compatible with xscen, listing the datasets created by this code.
-- `paths.yml`: A yaml file with the paths needed by the workflows. `template_paths.yml` shows an example of such a file, one only needs to replace the placeholders.
-
-This version of ESPO-R was created alongside the development of xscen, and it should be noted that different scripts were
-run with different pacakge versions, which are indicated at the top of the files. For these same reasons, `project.json`
-is not created anywhere in the scripts. It should be created after running `biasadjust.py` with `xscen.ProjectCatalog.create('project.json')` and filled with the scenarios through an appropriate call to `xscen.parse_directory`.
-
 ## ESPO-R5 v1.0
 ESPO-R5 v1.0 is an analysis-ready climate projection ensemble based on simulations from different regional climate models (RCMs). 
 The full list of simulations that compose the ensemble is shown in the table below. It is mainly based on [CORDEX-NA](https://na-cordex.org/) simulations (Mearns et al., 2017),
@@ -184,6 +162,27 @@ allows for better adjustment of the annual cycle. Note that this method does not
 (4) times fewer data values for day 366. To remedy this problem, all simulations as well as the reference product are
 converted to this "noleap" calendar. A more detailed explanation of the adjustment process is given in [the documentation](Documentation/adjustment.pdf).
 
+## Data processing tools
+Production and regular updates of ESPO-R/G operational datasets represents a challenge in terms of computational resources. 
+Ouranos has invested a great deal of effort in the development of powerful tools for this type of data processing via its 
+[xclim software package](https://xclim.readthedocs.io/en/stable/) (Logan et al., 2021). Built upon the packages
+[xarray](https://xarray.dev/) and [dask](https://www.dask.org/), xclim benefits from simple-to-use parallelization and
+distributed computing tools and can be easily deployed in High Performance Computing (HPC) environments.
+
+This repository contains the code used to generate and analyze the ESPO-R datasets. In addition to xclim and other
+freely available python libraries, it also uses [xscen](https://github.com/Ouranosinc/xscen), a climate change
+scenario-building analysis framework, also being developed at Ouranos. This tool relies on data catalogs as handled by
+[intake-esm](https://intake-esm.readthedocs.io/en/latest/index.html) as well as on YAML configuration files with a
+simple but specific structure. The catalog files and all paths needed by the configuration are missing from this
+repository, since they are specific to the data architecture of the computer running the code. To reproduce ESPO-R, one will need:
+
+- `CORDEX.json` and `CORDEX.csv` :An intake-esm catalog, compatible with xscen, listing the daily CORDEX and CRCM5 datasets to use as inputs.
+- `project.json` and `project.csv`: An intake-esm catalog, compatible with xscen, listing the datasets created by this code.
+- `paths.yml`: A yaml file with the paths needed by the workflows. `template_paths.yml` shows an example of such a file, one only needs to replace the placeholders.
+
+This version of ESPO-R was created alongside the development of xscen, and it should be noted that different scripts were
+run with different pacakge versions, which are indicated at the top of the files. For these same reasons, `project.json`
+is not created anywhere in the scripts. It should be created after running `biasadjust.py` with `xscen.ProjectCatalog.create('project.json')` and filled with the scenarios through an appropriate call to `xscen.parse_directory`.
 
 ### Performance
 Bias-adjustment of climate simulations is a quest with many traps. In order to assess the improvements and regressions
@@ -194,8 +193,8 @@ While that project aimed to "to validate and compare downscaling methods", we ba
 A detailed analysis is given in [the documentation](Documentation/performance.pdf).
 Our general conclusions concerning the quality of ESPO-R5v1.0 are:
 
- - The marginal properties of the simulations (mean, quantiles) are very well-adjusted, by construction of the QuantileMapping algorithm.
- - The climate change signal is also conserved from the simulations by construction of the algorithm.
+ - The marginal properties of the simulations (mean, quantiles) are very well-adjusted, by design of the Quantile Mapping algorithm.
+ - The climate change signal is also conserved from the simulations by design of the algorithm.
  - A side effect of adjusting the distributions explicitly is the improvement of the inter-variable correlation and some spatial diagnostics (first EOF for tasmax), even though the bias correction algorithm does not aim to adjust these aspects.
  - Because tasmin is not directly adjusted, but rather computed from the adjusted tasmax and dtr, it seems that our diagnostics show weaker improvements, compared to tasmax.
 

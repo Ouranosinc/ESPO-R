@@ -31,7 +31,7 @@ The bias adjustment acts independently on each day of the year as well as each g
 To render the procedure more robust, a window of 31 days around the current day of year was included in the inputs of the calibration (training step).
 For example, the adjustment for February 1 (day 32) was calibrated using data from January 15 to February 15, over the 30 years of the reference period;
 For leap years, this would mean that there are four (4) times fewer data points for the 366th day of the year.
-To circumvent this issue, we converted all inputs to a "noleap" calendar by dropping data on the 29th of February, except for simulations using the "360_day" calendar.
+To circumvent this issue, we converted all inputs to a "noleap" calendar by dropping data on the 29th of February, except for simulations using the "360\_day" calendar.
 In the latter case, the simulations were untouched but the reference data was converted to that calendar by dropping extra days taken at regular intervals\footnote{In a normal year, February 6th, April 20th, July 2nd, September 13th and November 25th are dropped. For a leap year, it is January 31st, April 1st, June 1st, August 1st, September 31st and December 1st.}
 
 \subsection{Detrending}
