@@ -16,19 +16,19 @@ indicators:
     input:
       da: tasmax
     parameters:
-      group: "time.month"
+      group: "time.season"
   mean_tasmin:
     base: xclim.sdba.properties.mean
     input:
       da: tasmin
     parameters:
-      group: "time.month"
+      group: "time.season"
   mean_pr:
     base: xclim.sdba.properties.mean
     input:
       da: pr
     parameters:
-      group: "time.month"
+      group: "time.season"
   q99_tasmax:
     base: xclim.sdba.properties.quantile
     cf_attrs:
@@ -91,36 +91,42 @@ indicators:
     input:
       da1: tasmax
       da2: pr
-  first_eof_tasmax:
-    base: xclim.sdba.properties.first_eof
-    input:
-      da: tasmax
-  first_eof_tasmin:
-    base: xclim.sdba.properties.first_eof
-    input:
-      da: tasmin
-  first_eof_pr:
-    base: xclim.sdba.properties.first_eof
-    input:
-      da: pr
-    parameters:
-      kind: "*"
-      thresh: "0.1 mm/d"
   correlogram_tasmax:
     base: xclim.sdba.properties.spatial_correlogram
     input:
       da: tasmax
-    properties:
-      bins: 99
   correlogram_tasmin:
     base: xclim.sdba.properties.spatial_correlogram
     input:
       da: tasmin
-    properties:
-      bins: 99
   correlogram_pr:
     base: xclim.sdba.properties.spatial_correlogram
     input:
       da: pr
-    properties:
-      bins: 99
+  longest_dry_spell:
+    base: xclim.sdba.properties.spell_length_distribution
+    input:
+      da: pr
+    parameters:
+      method: amount
+      op: <
+      thresh: "1 mm d-1"
+      stat: max
+  longest_warm_spell:
+    base: xclim.sdba.properties.spell_length_distribution
+    input:
+      da: tasmax
+    parameters:
+      method: amount
+      op: <
+      thresh: "25 °C"
+      stat: max
+  longest_cold_spell:
+    base: xclim.sdba.properties.spell_length_distribution
+    input:
+      da: tasmin
+    parameters:
+      method: amount
+      op: <
+      thresh: "-15 °C"
+      stat: max

@@ -11,14 +11,13 @@ from xclim.core.calendar import convert_calendar, get_calendar
 
 from xscen.biasadjust import train, adjust
 from xscen.catalog import ProjectCatalog
-from xscen.common import translate_time_chunk, stack_drop_nans, unstack_fill_nan
 from xscen.config import CONFIG, load_config
-from xscen.dianogstics import properties_and_measures
-from xscen.extraction import search_data_catalogs, extract_dataset
+from xscen.diagnostics import properties_and_measures
+from xscen.extract import search_data_catalogs, extract_dataset
 from xscen.io import rechunk, save_to_zarr
 from xscen.regrid import regrid_dataset
 from xscen.scripting import measure_time, send_mail_on_exit, timeout
-from xscen.utils import get_cat_attrs
+from xscen.utils import get_cat_attrs, translate_time_chunk, stack_drop_nans, unstack_fill_nan
 from variables import dtr, tasmin_from_dtr
 
 
@@ -37,6 +36,8 @@ def search_raw_sims(dsid):
             "CNRM-CERFACS-CNRM-CM5": ("CNRM-CERFACS", "CNRM-CM5")
         }
         crit['driving_institution'], crit['driving_model'] = drivers[crit['driving_model']]
+        crit['institution'] = "Ouranos"  # To be modified
+        crit['source'] = "CRCM5"
         scat = search_data_catalogs(
             other_search_criteria=crit,
             **CONFIG['extract']['sim-mrcc5']
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     ##############################
 
     # Check if they exist in the catalog.
-    if len(pcat.search(id=['ref-noleap', 'ref-standard', 'ref-360'], domain=region, processing_level='prepared').df) < 3:
+    if len(pcat.search(id=['ref-noleap', 'ref-standard', 'ref-360_day'], domain=region, processing_level='prepared').df) < 3:
         with (
             Client(n_workers=3, threads_per_worker=5, memory_limit="15GB", **daskkws),
             measure_time(name='makeref', logger=logger)
@@ -129,7 +130,6 @@ if __name__ == '__main__':
                 region=region_data,
             )['D']
             pvar = list(dgridref.data_vars.keys())[0]
-            dgridref['mask'] = dgridref[pvar].isel(time=0).notnull()
 
             # Regrid ref to gridref
             dref = regrid_dataset(
@@ -164,36 +164,40 @@ if __name__ == '__main__':
             logger.info('Working')
             compute(tasks)
             pcat.update_from_ds(dref_props, path=props_path)
-            pcat.update_from_ds(dref, path=wdir / f"ref_{region}_standard.zarr", processing_level='prepared', id='ref-standard')
-            pcat.update_from_ds(drefnl, path=wdir / f"ref_{region}_noleap.zarr", processing_level='prepared', id='ref-noleap')
-            pcat.update_from_ds(dref360, path=wdir / f"ref_{region}_360_day.zarr", processing_level='prepared', id='ref-360_day')
+            pcat.update_from_ds(dref, path=wdir / f"ref_{region}_standard.zarr", info_dict=dict(processing_level='prepared', id='ref-standard'))
+            pcat.update_from_ds(drefnl, path=wdir / f"ref_{region}_noleap.zarr", info_dict=dict(processing_level='prepared', id='ref-noleap'))
+            pcat.update_from_ds(dref360, path=wdir / f"ref_{region}_360_day.zarr", info_dict=dict(processing_level='prepared', id='ref-360_day'))
 
     ##################################
     # Section 1 - Extract and regrid #
     ##################################
-    if not pcat.search(id=dsid, processing_level='regridded', domain='region'):
+    if not pcat.search(id=dsid, processing_level='regridded', domain=region):
         with (
-            Client(n_workers=8, threads_per_worker=3, memory_limit="7GB", **daskkws),
+            Client(n_workers=2, threads_per_worker=4, memory_limit="16GB", **daskkws),
             measure_time(name='regrid', logger=logger)
         ):
             scat = search_raw_sims(dsid)
             ds_in = extract_dataset(
                 scat,
+                ensure_correct_time=False,
+                region={'buffer': 2, **region_data},
                 xr_combine_kwargs={'data_vars': 'minimal'}
             )['D']
 
-            dref = pcat.search(id='ref-default', processing_level='prepared', domain=region).to_dask()
+            dref = pcat.search(id='ref-standard', processing_level='prepared', domain=region).to_dask()
             encoding = {k: {'dtype': 'float32'} for k in variables}
 
-            out = regrid_dataset(ds_in, dref)
+            out = regrid_dataset(ds_in.chunk({'lat': -1, 'lon': -1}), dref)
             out = out.chunk(translate_time_chunk({'time': '4year'}, get_calendar(out), out.time.size))
             save_to_zarr(out, wdir / f"{dsid}_{region}_regridded.zarr", mode=mode, encoding=encoding)
             pcat.update_from_ds(
                 out,
-                id=dsid,
-                domain=region,
                 path=wdir / f"{dsid}_{region}_regridded.zarr",
-                processing_level="regridded"
+                info_dict=dict(
+                    id=dsid,
+                    domain=region,
+                    processing_level="regridded"
+                )
             )
 
     if not pcat.search(id=dsid, processing_level='rechunked', domain=region):
@@ -206,20 +210,20 @@ if __name__ == '__main__':
             cal = get_calendar(ds)
             Nt = ds.time.size
 
-            chunks = {v: {d: CONFIG['custom']['chunks'][d] for d in ds[v].dims} for v in variables}
+            chunks = {v: {d: CONFIG['main']['chunks'][d] for d in ds[v].dims} for v in variables}
             chunks.update(time=None, lat=None, lon=None)
             chunks = translate_time_chunk(chunks, cal, Nt)
 
             rechunk(
-                dsentry.path.iloc[0],
+                dsentry.df.path.iloc[0],
                 str(wdir / f"{dsid}_{region}_rechunked.zarr"),
                 chunks_over_var=chunks,
                 worker_mem="2GB"
             )
             pcat.update_from_ds(
                 ds,
-                processing_level='rechunked',
-                path=wdir / f"{dsid}_{region}_rechunked.zarr"
+                path=wdir / f"{dsid}_{region}_rechunked.zarr",
+                info_dict=dict(processing_level='rechunked'),
             )
 
     if not pcat.search(id=dsid, processing_level='prop-sim', domain=region):
@@ -269,7 +273,7 @@ if __name__ == '__main__':
                     trds = train(dref, dhist, var=[var], **kwargs)
                     save_to_zarr(trds, outfile)
                 pcat.update_from_ds(
-                    dhist, path=outfile, processing_level='training_data', xrfreq='fx', frequency='fx', date_start=None, date_end=None
+                    dhist, path=outfile, info_dict=dict(processing_level='training_data', xrfreq='fx', frequency='fx', date_start=None, date_end=None)
                 )
 
     if len(pcat.search(id=dsid, processing_level='adjusted', domain=region, variable=variables)) != len(variables):
@@ -293,7 +297,7 @@ if __name__ == '__main__':
                         trds, dsim, [tgt_period.start, tgt_period.stop], adjkwargs
                     )
                     save_to_zarr(scen, outfile)
-                pcat.update_from_ds(scen, path=outfile, processing_level='adjusted')
+                pcat.update_from_ds(scen, path=outfile, info_dict=dict(processing_level='adjusted'))
 
     if not pcat.search(id=dsid, processing_level='clean', domain=region):
         with (
@@ -322,7 +326,7 @@ if __name__ == '__main__':
                         del var.attrs[attr]
 
             save_to_zarr(scen, wdir / f"{dsid}_{region}_final.zarr", mode=mode)
-            pcat.update_from_ds(scen, path=wdir / f"{dsid}_{region}_final.zarr", processing_level='clean')
+            pcat.update_from_ds(scen, path=wdir / f"{dsid}_{region}_final.zarr", info_dict=dict(processing_level='clean'))
 
     if not pcat.search(id=dsid, processing_level='prop-scen', domain=region):
         with (
@@ -377,6 +381,7 @@ if __name__ == '__main__':
             )
             pcat.update_from_ds(
                 ds,
-                processing_level='final',
                 path=str(out / f"{dsid}_{region}.zarr"),
+                info_dict=dict(processing_level='final'),
+
             )

@@ -22,7 +22,7 @@ logging:
             propagate: False
             handlers: [console]
         xscen:
-            level: DEBUG
+            level: INFO
             propagate: False
             handlers: [console]
         xscen.io:
@@ -49,11 +49,6 @@ extract:
             tasmax: D
             tasmin: D
             pr: D
-        id_columns:
-            - driving_source
-            - institution
-            - source
-            - experiment
         allow_resampling: True
         allow_conversion: False
         restrict_resolution: finest
@@ -67,8 +62,10 @@ extract:
             source: ERA5
     gridref:
         other_search_criteria:
-            source: ERA5-land
-    sim:
+            source: ERA5-Land
+    sim-cordex:
+        match_hist_and_fut: True
+    sim-mrcc5:
         match_hist_and_fut: True
 
 project:
@@ -230,4 +227,4 @@ regrid:
 indicators:
     work_on_local_copy: False
     filename_template: "{driving_institution}_{driving_model}_{institution}_{source}_{experiment}_{xrfreq}_1950-2100.zarr"
-    ref_template: "ERA5-land_obs_{xrfreq}_1950-2100.zarr"
+    ref_template: "ERA5-Land_obs_{xrfreq}_1950-2100.zarr"
