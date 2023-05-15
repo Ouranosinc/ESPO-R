@@ -1,0 +1,75 @@
+dask:
+    client-base:
+        dashboard_address: 8787 
+        silence_logs: 50
+    array.slicing.split_large_chunks: False
+    num_workers: 8
+    scheduler: threads
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : DEBUG
+    loggers:
+        workflow:
+            level: INFO
+            propagate: False
+            handlers: [console]
+        xscen:
+            level: INFO
+            propagate: False
+            handlers: [console]
+    root:
+        level: INFO
+        handlers: [console]
+
+datasets:
+    sims:
+        - ESPOG-NRCAN
+        - ESPOG-RDRS
+        - ESPOR
+        - ESPOG
+        - ESPOG-IDM
+        - ScenGen
+    refs:
+        - NRCAN
+        - RDRS
+        - ERA5-Land
+
+regions:
+    QC:
+        method: shape
+        buffer: 3
+
+extract:
+    ESPOG:
+        bias_adjust_project: ESPO-G6
+        domain: NAM
+    ESPOG-RDRS:
+        bias_adjust_project: ESPO-G6
+        domain: QC-rdrs
+    ESPOG-NRCAN:
+        bias_adjust_project: ESPO-G6
+        domain: QC-nrcan
+        experiment: ssp245
+    ESPOG-IDM:
+        bias_adjust_project: ESPO-G6-IDM
+    ESPOR:
+        bias_adjust_project: ESPO-R5
+    ERA5-Land:
+        source: ERA5-Land
+    NRCAN:
+        source: NRCAN
+    RDRS:
+        source: RDRS
+    ScenGen:
+        bias_adjust_project: ScenGen
+    best_chunks:
+        ESPOG:
+            time: -1

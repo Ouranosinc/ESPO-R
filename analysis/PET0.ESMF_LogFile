@@ -1,0 +1,15 @@
+20230201 115903.812 ERROR            PET0 /home/conda/feedstock_root/build_artifacts/esmf_1668079181398/work/src/Infrastructure/Mesh/src/ESMCI_Mesh_Glue.C:687 triangulate_warea() Arguments are incompatible  -  - there was a problem (e.g. repeated points, clockwise poly, etc.) with the triangulation of the element with id=65
+20230201 115903.814 ERROR            PET0 /home/conda/feedstock_root/build_artifacts/esmf_1668079181398/work/src/Infrastructure/Mesh/src/ESMCI_Mesh_Glue.C:1587 ESMCI_meshaddelements() Arguments are incompatible  - Internal subroutine call returned Error
+20230201 115903.814 ERROR            PET0 ESMCI_MeshCap.C:582 MeshCap::meshaddelements() Arguments are incompatible  - Internal subroutine call returned Error
+20230201 115903.820 ERROR            PET0 ESMC_Mesh.C:244 ESMC_MeshAddElements() Arguments are incompatible  - Internal subroutine call returned Error
+20230201 115903.885 INFO             PET0 Finalizing ESMF
+20230209 163338.779 ERROR            PET0 Destination id=1 NOT found in weight matrix.
+20230209 163338.788 ERROR            PET0 ESMCI_Mesh_Regrid_Glue.C:343 ESMCI_regrid_create() Arguments are incompatible  - - There exist destination cells (e.g. id=1) which don't overlap with any source cell
+20230209 163338.792 ERROR            PET0 ESMCI_Mesh_Regrid_Glue.C:586 ESMCI_regrid_create() Arguments are incompatible  - Internal subroutine call returned Error
+20230209 163338.792 ERROR            PET0 ESMCI_MeshCap.C:1676 MeshCap::regrid_create() Arguments are incompatible  - Internal subroutine call returned Error
+20230209 163338.792 ERROR            PET0 ESMF_Regrid.F90:368 ESMF_RegridStore Arguments are incompatible  - Internal subroutine call returned Error
+20230209 163338.792 ERROR            PET0 ESMF_FieldRegrid.F90:1171 ESMF_FieldRegridStoreNX Arguments are incompatible  - Internal subroutine call returned Error
+20230209 163338.792 ERROR            PET0 ESMF_Field_C.F90:1137 f_esmf_regridstore Arguments are incompatible  - Internal subroutine call returned Error
+20230209 163338.792 ERROR            PET0 ESMCI_Field.C:1468 ESMCI::Field::regridstore() Arguments are incompatible  - Internal subroutine call returned Error
+20230209 163338.792 ERROR            PET0 ESMC_Field.C:449 ESMC_FieldRegridStore() Arguments are incompatible  - Internal subroutine call returned Error
+20230209 163338.894 INFO             PET0 Finalizing ESMF

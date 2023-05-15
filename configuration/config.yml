@@ -1,0 +1,469 @@
+# Configuration file for ESPO-G6-R2 v1.0.0
+
+project:
+    name: ESPO-R5-R2
+    version: 1.0.0
+    description: Ensemble de scénarios polyvalents d'Ouranos - Régional - CMIP5
+    id: er5
+
+tasks:
+  ####- initialize_pcat # only activate this task the first time you run the workflow to create the ProjectCatalog
+  - makeref
+  - extract
+  - regrid
+  - rechunk
+  - train
+  - adjust
+  - clean_up
+  - final_zarr
+  - diagnostics
+  # - concat
+  # - official-diag
+  # - indicators
+  # - climatological_mean
+  # - abs-delta
+  # - per-delta
+  # - ensemble
+
+
+
+custom:
+    delete_in_final_zarr: False
+    delete_in_diag: True
+    regions:
+        QC-rdrs-rot:
+            name: QC-rot
+            method: sel
+            bbox:
+                rlon: [ -83, -55 ]
+                rlat: [ 42, 63 ]
+        # south-rdrs-rot:
+        #     name: south-rdrs-rot
+        #     method: sel
+        #     sel:
+        #         rlon: [ 324.5, 388.2 ]
+        #         rlat: [ -47, -23 ]
+        # middle-rdrs-rot:
+        #     name: middle-rdrs-rot
+        #     method: sel
+        #     sel:
+        #         rlon: [ 324.5, 388.2 ]
+        #         rlat: [ -23, 1 ]
+        # north-rdrs-rot:
+        #     name: north-rdrs-rot
+        #     method: sel
+        #     sel:
+        #         rlon: [ 324.5, 388.2 ]
+        #         rlat: [ 1, 26 ]
+    amno_region:
+        name:  &nam-name
+            NAM-rdrs
+        method: bbox
+        buffer: 1.5
+        bbox:
+            lon_bnds: [ -179.95, -10 ]
+            lat_bnds: [ 10, 83.4 ]
+    stack_drop_nans: &stack
+        True
+    chunks:
+        rlat: 20
+        rlon: 20
+        loc: 600
+        time: -1
+    out_chunks:
+        rlat: 50 #20 for prob-reg.
+        rlon: 50
+        time: 4year
+    ref_period : &ref_period
+        - '1989'
+        - '2018'
+    sim_period: &sim_period
+        - '1950'
+        - '2100'
+    maximal_calendar:
+        noleap
+    rechunk:
+      rlat: 50
+      rlon: 50
+
+extraction:
+    reference:
+        search_data_catalogs:
+            variables_and_freqs:
+                tasmax: D
+                tasmin: D
+                pr: D
+                dtr: D
+                mask: fx
+            allow_resampling: False
+            allow_conversion: True
+            periods : *ref_period
+            other_search_criteria:
+                source: &ref_source
+                    RDRS
+        extract_dataset:
+          mask: True
+        properties_and_measures:
+          to_level_prop: diag-ref-prop
+          period: *ref_period
+          unstack: *stack
+        chunks:
+          time: -1
+    simulation:
+        search_data_catalogs:
+            variables_and_freqs:
+              tasmax: D
+              tasmin: D
+              pr: D
+              dtr: D
+            match_hist_and_fut: True
+            allow_conversion: True
+            allow_resampling: False
+            restrict_members:
+              ordered: 1
+            periods: *sim_period
+            # exclusions:
+            other_search_criteria:
+              processing_level: raw
+              experiment:
+                - rcp45
+                - rcp85
+              activity: CORDEX
+        extract_dataset:
+            periods : *sim_period
+            xr_combine_kwargs:
+              combine_attrs: override
+            xr_open_kwargs:
+              drop_variables:
+                - height
+              chunks:
+                rlat: 100
+                rlon: 100
+                x: 100
+                y: 100
+                lat: 100
+                lon: 100
+                time: 365
+              #chunks: {'time': 1, 'lon': -1, 'lat': -1} # only for CNRM-ESM2-1
+        chunks: {'time': 365, 'lat': -1, 'lon': -1}
+    ref_source: *ref_source
+
+regrid:
+  target:
+    source: *ref_source
+    calendar: noleap
+  regrid_dataset:
+      regridder_kwargs:
+        method: bilinear
+        extrap_method: inverse_dist
+        locstream_out: *stack
+        reuse_weights: False
+
+io:
+  rechunk:
+    worker_mem: 2GB
+
+biasadjust:
+    variables:
+        dtr:
+            training_args:
+                reference_period: *ref_period
+                method: DetrendedQuantileMapping
+                group: &group
+                    group: time.dayofyear
+                    window: 31
+                jitter_under: # to avoid negative dtr (when temperature inversion GFDL)
+                   thresh: 1e-4 K
+                xclim_train_args:
+                    kind: "*"
+                    nquantiles: 50
+            adjusting_args:
+                simulation_period: *sim_period
+                xclim_adjust_args:
+                    detrend: &detrend
+                        LoessDetrend:
+                          f: 0.2
+                          niter: 1
+                          d: 0
+                          weights: tricube
+                    interp: nearest
+                    extrapolation: constant
+                bias_adjust_institution: &b_a_inst
+                  Ouranos
+                bias_adjust_project: &b_a_pro
+                  ESPO-R5
+        tasmax:
+            training_args:
+                reference_period: *ref_period
+                method: DetrendedQuantileMapping
+                group: *group
+                xclim_train_args:
+                    kind: "+"
+                    nquantiles: 50
+            adjusting_args:
+                simulation_period: *sim_period
+                xclim_adjust_args:
+                  detrend: *detrend
+                  interp: nearest
+                  extrapolation: constant
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
+        pr:
+            training_args:
+                reference_period: *ref_period
+                method: DetrendedQuantileMapping
+                group: *group
+                adapt_freq:
+                    thresh: 1 mm d-1
+                jitter_under:
+                    thresh: 0.01 mm d-1
+                xclim_train_args:
+                    kind: "*"
+                    nquantiles: 50
+            adjusting_args:
+                simulation_period: *sim_period
+                xclim_adjust_args:
+                  detrend: *detrend
+                  interp: nearest
+                  extrapolation: constant
+                bias_adjust_institution: *b_a_inst
+                bias_adjust_project: *b_a_pro
+
+clean_up:
+  search_data_catalogs:
+    variables_and_freqs:
+      tasmax: D
+      tasmin: D
+      pr: D
+    allow_conversion: True
+    allow_resampling: False
+  problems:
+
+  xscen_clean_up:
+      maybe_unstack_dict:
+        stack_drop_nans: *stack
+        rechunk:
+          rlat: 20
+          rlon: 20
+          time: -1
+      round_var:
+        pr: 10
+      to_level: cleaned_up
+      add_attrs:
+        global:
+          Notes: |
+            Regridded on the grid of RDRS v2.1, then bias-adjusted with detrended
+            quantile mapping on a day-of-year basis with a window of 31 days, LOESS
+            detrending and 50 quantiles. The reference was RDRS v2.1 over the
+            1989-2018 period. The variables tasmax, dtr and pr were adjusted, tasmin was computed
+            from tasmax and dtr after the adjustment.
+          redistribution: Redistribution prohibited. For internal use only.
+          version: "1.0.0"
+        tasmax:
+            standard_name: air_temperature
+            long_name: Maximal daily temperature
+            cell_methods: "time: maximum within days"
+        tasmin:
+            standard_name: air_temperature
+            long_name: Minimal daily temperature
+            cell_methods: "time: minimum within days"
+        pr:
+            standard_name: precipitation_flux
+            long_name: Mean daily precipitation flux
+            cell_methods: "time: mean within days"
+
+
+diagnostics:
+  sim:
+    input:
+      processing_level:  regridded_and_rechunked
+    dref_for_measure:
+      processing_level: diag-ref-prop
+    properties_and_measures:
+      period: *ref_period
+      unstack: *stack
+  scen:
+    input:
+      processing_level: final
+    dref_for_measure:
+      processing_level: diag-ref-prop
+    properties_and_measures:
+      period: *ref_period
+      unstack: False
+
+indicators:
+  input:
+    processing_level: final
+    domain: *nam-name
+  compute_indicators:
+    to_level: individual_indicator
+
+aggregate:
+  input:
+    clim:
+      processing_level: indicators
+      domain: *nam-name
+    abs-delta:
+      processing_level: climatology
+      domain: *nam-name
+    per-delta:
+      processing_level: climatology
+      variable: prcptot
+      domain: *nam-name
+  climatological_mean:
+    window: 30
+    interval: 10
+    periods: [['1951', '2100']]
+    to_level: climatology
+  compute_deltas:
+    reference_horizon: "1991-2020"
+
+
+ensemble:
+    processing_levels:
+        - indicators
+        - climatology
+        - abs-delta
+        - per-delta
+    domain: *nam-name
+    ensemble_stats_xscen:
+      statistics:
+        ensemble_percentiles:
+          split: True
+      common_attrs_only: True
+      create_kwargs:
+        chunks:
+          horizon: -1
+
+off-diag:
+  domains:
+#    Haudenosaunee-rdrs-rot:
+#        name: Haudenosaunee-rdrs-rot
+#        method: sel
+#        sel:
+#          rlat: [ -14, -8 ]
+#          rlon: [ 370, 375 ]
+#    Ute-rdrs:
+#        name: Ute-rdrs
+#        method: bbox
+#        bbox:
+#          lat_bnds: [ 35.0, 40.0 ]
+#          lon_bnds: [ -111.0, -103.0 ]
+#    Dene-rdrs:
+#        name: Dene-rdrs
+#        method: bbox
+#        bbox:
+#          lat_bnds: [ 60.0, 65.0 ]
+#          lon_bnds: [ -124.0, -116.0 ]
+    Magtogoek-rdrs:
+      name: Magtogoek-rdrs
+      method: bbox
+      bbox:
+        lat_bnds:  [ 41.4, 49.4]  #[ 41, 49]
+        lon_bnds: [ -92.2, -59.8 ] #[ -92, -68 ]
+#    meridional-rdrs:
+#      name: meridional-rdrs
+#      method: bbox
+#      bbox:
+#        lon_bnds: [ -83, -55 ]
+#        lat_bnds: [ 42, 52 ]
+#    QC-rdrs:
+#      name: QC-rdrs
+#      method: bbox
+#      bbox:
+#        lon_bnds: [ -83, -55 ]
+#        lat_bnds: [ 42, 63 ]
+#    Haudenosaunee-rdrs:
+#        name: Haudenosaunee-rdrs
+#        method: bbox
+#        bbox:
+#          lat_bnds: [ 42.0, 47.0 ]
+#          lon_bnds: [ -79.0, -71.0 ]
+  steps:
+    ref:
+      input:
+        source: *ref_source
+        calendar: default
+        processing_level: extracted
+      domain: &domains-off-diag
+        meridional-rdrs: QC-rdrs
+        QC-rdrs: QC-rdrs
+        Haudenosaunee-rdrs-rot: QC-rdrs
+        Magtogoek-rdrs: middle-rdrs-rot
+      properties_and_measures:
+        period: *ref_period
+      unstack: *stack
+    sim:
+      input:
+        source: *hausfather-source
+        processing_level:  regridded
+      domain: *domains-off-diag
+      dref_for_measure:
+        processing_level: off-diag-ref-prop
+      properties_and_measures:
+        period: *ref_period
+      unstack: *stack
+    scen:
+      input:
+        source: *hausfather-source
+        processing_level: final
+      domain:
+        Magtogoek-rdrs: *nam-name
+        meridional-rdrs: QC-rdrs
+        QC-rdrs: QC-rdrs
+        Haudenosaunee-rdrs-rot: QC-rdrs
+      dref_for_measure:
+        processing_level: off-diag-ref-prop
+      properties_and_measures:
+        period: *ref_period
+      unstack: False
+  correlogram:
+    regions: # list of region on which we want to calculate the correlogram
+      - Haudenosaunee-rdrs-rot
+    args:
+      dims:
+        - rlat
+        - rlon
+
+
+scripting:
+    measure_time:
+        cpu: True
+    subject: ESPO-G6
+    send_mail_on_exit:
+        msg_ok: Toutes les étapes demandées ont été complétées.
+        msg_err: Une erreur est survenue durant le traitement.
+        on_error_only: True
+
+
+dask:
+    array.slicing.split_large_chunks: False
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : INFO
+        file:
+            class: logging.FileHandler
+            formatter: default
+            level : DEBUG
+    loggers:
+        xscen:
+            level: INFO
+            handlers: [file, console]
+
+tdd:
+  xarray_open_kwargs:
+    decode_timedelta: False
+
+#utils:
+#  unstack_fill_nan:
+#    coords: ['rlat', 'rlon']
+#  maybe_unstack:
+#    coords: ['rlat', 'rlon']

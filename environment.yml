@@ -1,0 +1,7 @@
+name: espo-r
+channels:
+  - conda-forge
+  - ouranosinc
+dependencies:
+  - xscen
+

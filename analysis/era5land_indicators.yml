@@ -1,0 +1,70 @@
+dask:
+    client:
+        n_workers: 3
+        threads_per_worker: 4
+        memory_limit: 12GB
+        dashboard_address: 8786
+        silence_logs: 50
+    array.slicing.split_large_chunks: False
+    num_workers: 8
+    scheduler: threads
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : DEBUG
+    loggers:
+        workflow:
+            level: INFO
+            propagate: False
+            handlers: [console]
+        xscen:
+            level: INFO
+            propagate: False
+            handlers: [console]
+    root:
+        level: INFO
+        handlers: [console]
+
+project:
+    id: ERA5-Land-Indicators
+    title: Portraits Indicators on ERA5-Land / NAM
+
+main:
+    catalog: project.json
+    outfilename: /exec/pbourg/ESPO-G/indicators/raw/{source}/{id}_{xrfreq}.zarr/
+
+indicators:
+    module: ../configuration/portraits
+
+extract:
+    search_data_catalogs:
+        data_catalogs:
+            - /tank/scenario/catalogues/reconstruction.json
+        variables_and_freqs:
+            tasmin: D
+            tas: D
+            tasmax: D
+            pr: D
+        other_search_criteria:
+            source: ERA5-Land
+            domain: NAM
+        allow_resampling: True
+        allow_conversion: True
+
+io:
+    save_to_zarr:
+        mode: o
+        itervar: False
+
+scripting:
+    send_mail_on_exit:
+        subject: "Indicator computing terminated."
+        msg_ok: "🥳 Everything went well."
+        msg_err: "🔥 Something went wrong while computing the indicators. 🔥"

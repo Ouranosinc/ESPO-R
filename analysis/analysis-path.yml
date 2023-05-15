@@ -1,0 +1,10 @@
+extract:
+    catalog: /home/pbourg/Projets/scenario-web/backend/config/catalog.json
+
+regions:
+  QC:
+    shape:
+      shape: /exec/pbourg/PC/20230116/regions_simplified_admin.geojson
+main:
+  save_directory: /exec/pbourg/ESPO-G/
+  catalog: project.json

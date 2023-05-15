@@ -1,0 +1,87 @@
+dask:
+    client:
+        n_workers: 2
+        threads_per_worker: 3
+        memory_limit: 10GB
+        dashboard_address: 8786
+        silence_logs: 50
+    array.slicing.split_large_chunks: False
+    num_workers: 8
+    scheduler: threads
+
+logging:
+    formatters:
+        default:
+            format: '%(asctime)s %(levelname)-8s %(name)-15s %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console:
+            class : logging.StreamHandler
+            formatter: default
+            level : DEBUG
+    loggers:
+        workflow:
+            level: INFO
+            propagate: False
+            handlers: [console]
+        xscen:
+            level: INFO
+            propagate: False
+            handlers: [console]
+    root:
+        level: INFO
+        handlers: [console]
+
+project:
+    id: ESPO-G Indicators
+    title: Portraits Indicators on ESPO-G / QC-NRCAN
+
+main:
+    catalog: /exec/pbourg/ESPO-G/cat_ESPO-G6.json
+    outfilename: /jarre/pbourg/ESPO-G/INDICATORS/{id}_{domain}_{xrfreq}_{processing_level}.zarr
+
+indicators:
+    module: ../configuration/portraits
+
+extract:
+    search_data_catalogs:
+        data_catalogs:
+            - /exec/pbourg/ESPO-G/cat_ESPO-G6.json
+        variables_and_freqs:
+            tasmin: D
+            tasmax: D
+            pr: D
+            tas : D
+        other_search_criteria:
+            bias_adjust_project: ESPO-G6
+            domain: QC-nrcan
+            processing_level: final
+            experiment: ssp245
+            source:
+                - BCC-CSM2-MR
+                - FGOALS-g3 # None, but 1 file per year
+                - CMCC-ESM2 # [1, 192, 288]
+                - CNRM-ESM2-1 # [1, 128, 256] # cut didnt work here for some reason.. (x2)
+                - ACCESS-CM2 #  [1, 145, 192]
+                - ACCESS-ESM1-5 # [1, 96, 144]
+                - MPI-ESM1-2-HR # [1, 192, 384]
+                - INM-CM5-0 # [1, 120, 180]
+                - MIROC6 # [1, 96, 192]
+                - MPI-ESM1-2-LR #[1, 96, 192]
+                - MRI-ESM2-0 #[1, 160, 320]
+                - NorESM2-LM #[1, 96, 144]
+                - KACE-1-0-G #[1, 144, 192] time out extract
+                - GFDL-ESM4 #[1, 180, 288]
+        allow_resampling: False
+        allow_conversion: True
+
+io:
+    save_to_zarr:
+        mode: o
+        itervar: False
+
+scripting:
+    send_mail_on_exit:
+        subject: "Indicator computing terminated."
+        msg_ok: "🥳 Everything went well."
+        msg_err: "🔥 Something went wrong while computing the indicators. 🔥"
