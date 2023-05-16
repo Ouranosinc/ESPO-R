@@ -119,16 +119,19 @@ extraction:
             match_hist_and_fut: True
             allow_conversion: True
             allow_resampling: False
-            restrict_members:
-              ordered: 1
             periods: *sim_period
+            restrict_resolution: finest
             # exclusions:
             other_search_criteria:
               processing_level: raw
               experiment:
                 - rcp45
                 - rcp85
-              activity: CORDEX
+              activity:
+                - CORDEX
+                - MRCC5
+              domain: "NAM-.*"
+              mip_era: CMIP5
         extract_dataset:
             periods : *sim_period
             xr_combine_kwargs:
